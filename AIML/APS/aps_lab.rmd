@@ -1,0 +1,36 @@
+'''{r}
+
+# (a) False positive or false negative rate?
+# False negative rate is of more serious concern because it allows potentially malicious bot requests to go undetected.
+
+# (b) Review the network security software?
+# Calculate the probability of at least one error per minute
+false_positive_rate <- 0.09
+false_negative_rate <- 0.05
+human_requests <- 15
+bot_requests <- 5
+
+error_probability <- 1 - (1 - false_positive_rate)^bot_requests * (1 - false_negative_rate)^human_requests
+
+if (error_probability > 0.8) {
+    review_decision <- "Review"
+} else {
+    review_decision <- "Do not review"
+}
+
+review_decision
+
+# (c) Plot the probability mass function of the number of errors per minute
+library(ggplot2)
+
+error_counts <- 0:20
+error_probabilities <- dpois(error_counts, lambda = human_requests * false_negative_rate + bot_requests * false_positive_rate)
+
+pmf_plot <- ggplot(data.frame(error_counts, error_probabilities), aes(x = error_counts, y = error_probabilities)) +
+    geom_bar(stat = "identity", fill = "blue", width = 0.5) +
+    labs(x = "Number of Errors per Minute", y = "Probability") +
+    ggtitle("Probability Mass Function of Errors per Minute")
+
+pmf_plot
+
+'''

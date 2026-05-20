@@ -1,0 +1,47 @@
+```{r}
+library(ggplot2)
+library(dplyr)
+library(patchwork)
+```
+```{r}
+userA = read.delim2(file = "D://APS//APS_AIML//CodingProblemSet3//personKeyTimingA.txt", header = TRUE, sep = "\t", dec = ",")
+userB = read.delim2(file = "D://APS//APS_AIML//CodingProblemSet3//personKeyTimingB.txt", header = TRUE, sep = "\t", dec = ",")
+```
+
+```{r}
+print(userA)
+```
+```{r}
+str(userA)
+```
+```{r}
+dfUserA = as.data.frame(userA)
+colnames(dfUserA) = c('Time')
+```
+
+```{r}
+# Convert the time column to numeric
+userA$time = as.numeric(userA$time)
+
+# Plot density histogram for User A
+ggplot(data = dfUserA, aes(x = diff(time))) +
+  geom_histogram(aes(y = ..density..), bins = 30, alpha = 0.5, fill = "blue", color = "black") +
+  labs(title = "Density Histogram of Keystroke Times for User A",
+       x = "Keystroke Time (milliseconds)",
+       y = "Density") +
+  theme_minimal()
+
+```
+
+
+```{r}
+t = seq(0, 3)
+t
+lambda = (365 * 5 * 4)/5000
+lambda
+```
+```{r}
+F_x = 1 - (exp)(-lambda * t) 
+mean(F_x)
+```
+

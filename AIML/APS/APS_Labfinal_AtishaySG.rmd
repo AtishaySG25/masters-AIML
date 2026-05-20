@@ -1,0 +1,96 @@
+```{r}
+print('Hello')
+```
+Question 1
+```{r}
+p_guilty = 0.75
+
+p_cc_png = 0.9
+p_cc_pg = 0.8
+p_ca_png = 0.1
+p_ca_pg = 0.2
+```
+
+```{r}
+p_ccd = (p_cc_pg * p_guilty) + (p_ca_png * p_guilty)
+p_ccd
+
+p_ccd_binom = dbinom(x=9, size = 12, prob = p_ccd)
+p_ccd_binom
+```
+The 2 appropriate conditional probabilities are: 
+1. Option(2): P(Court decides to convict | Person guilty)
+2. Option(3): P(court decides to acquit | Person not guilty)
+
+Let us also try for other options and see what is the probability
+```{r}
+p_ccd_43 = (p_ca_pg * p_guilty) + (p_ca_png * p_guilty)
+p_ccd_43
+
+p_ccd_43_binom = dbinom(x=9, size = 12, prob = p_ccd_43)
+p_ccd_43_binom
+```
+```{r}
+p_ccd_41 = (p_ca_pg * p_guilty) + (p_cc_png * p_guilty)
+p_ccd_41
+
+p_ccd_41_binom = dbinom(x=9, size = 12, prob = p_ccd_41)
+p_ccd_41_binom
+```
+```{r}
+p_ccd_21 = (p_cc_pg * p_guilty) + (p_cc_png * p_guilty)
+p_ccd_21
+
+p_ccd_21_binom = dbinom(x=9, size = 12, prob = p_ccd_21)
+p_ccd_21_binom
+```
+```{r}
+p_ccd_23 = (p_cc_pg * p_guilty) + (p_ca_png * p_guilty) 
+p_ccd_23
+
+p_ccd_23_binom = dbinom(x=9, size = 12, prob = p_ccd_23)
+p_ccd_23_binom
+```
+
+Question 2
+```{r}
+n_simulations = 1e5
+```
+
+```{r}
+n_customers = 30
+
+p_age_group = c(0.2, 0.35, 0.45)
+avg_buy = c(10, 20, 5)
+```
+
+```{r}
+items_sold = numeric(n_simulations)
+```
+
+```{r}
+for (i in 1:n_simulations) {
+  n_customers_today = rpois(1, n_customers)
+  age = sample(0:2, n_customers_today, replace = TRUE, prob = p_age_group)
+  items_purchased <- sapply(age, function(age_group) rpois(1, avg_buy[age_group + 1]))
+  items_sold[i] = sum(items_purchased)
+}
+```
+
+```{r}
+p_gt_350 = mean(items_sold > 350)
+p_gt_350
+```
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+df_items_sold = data.frame(items_sold)
+
+p = ggplot((df_items_sold), aes(x = items_sold)) + geom_histogram(bins = 30, fill = "skyblue", color = 'black') + labs(title = "Distribution of total items sold", x = 'Total items sold', y = 'Frequency')
+p
+```
+

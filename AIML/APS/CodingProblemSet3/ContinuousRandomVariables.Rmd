@@ -1,0 +1,824 @@
+---
+title: An R Markdown document converted from "ContinuousRandomVariables.ipynb"
+output: html_document
+---
+
+```{r}
+# Package for side-by-side ggplot plots
+install.packages('patchwork')
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(patchwork)
+```
+
+The seq() function to generate an array.
+
+```{r}
+mu_Male = 170
+sigma_Male = 8
+delta = 2
+seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta)
+```
+
+Simulate heights of male students and using bin width = 2 cm over the range 138 cm-202 cm, plot the:
+
+1. **Frequency histogram**, where each bin has a height equal to the number of students whose heights fall in that bin);
+2. **Relative frequency histogram**, where each bin has a height equal to the proportion of students whose heights fall in that bin);
+3. **Density histogram**, where each bin has a height equal to the proportion of students whose heights fall in that bin divided by the bin width).
+
+```{r}
+# Parameters
+mu_Male = 170
+sigma_Male = 8
+
+# Bin width
+delta = 2.0
+
+nsimulations = 1e5
+simulatedData_Male = rnorm(nsimulations, mean = mu_Male, sd = sigma_Male)
+
+dfHeights = as.data.frame(simulatedData_Male)
+colnames(dfHeights) = c('MaleHeight')
+
+# Plot the frequency histogram for male student heights
+p1 = ggplot(data = dfHeights) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(count)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Frequency')
+
+# Plot the relative frequency histogram for male student heights
+p2 = ggplot(data = dfHeights) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(count)/sum(after_stat(count))),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Relative Frequency')
+
+# Plot the density histogram for male student heights
+p3 = ggplot(data = dfHeights) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(density)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Density')
+
+# Plot the density histogram along with density curve for male student heights
+p4 = ggplot(data = dfHeights) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(density)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  stat_function(fun = dnorm, args = list(mean = mean(dfHeights$MaleHeight), sd = sd(dfHeights$MaleHeight))) +
+  labs(x = 'Height (cm)', y = 'Density')
+
+
+# Plot the histograms side-by-side
+p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+```
+
+Calculate the probability that a random student's height is equal to 170 cm.
+
+```{r}
+# Approximate probability using simulation
+mean(dfHeights == 170)
+```
+
+Calculate the probability that a random student's height is in between 170 cm and 172 cm.
+
+```{r}
+# Approximate probability using simulation
+mean(dfHeights >= 170 & dfHeights <= 172)
+```
+
+```{r}
+# Parameters
+mu_Male = 170
+sigma_Male = 8
+
+# Bin width
+delta = 2.0
+
+nsimulations = 1e5
+simulatedData_Male = rnorm(nsimulations, mean = mu_Male, sd = sigma_Male)
+
+df = as.data.frame(simulatedData_Male)
+colnames(df) = c('MaleHeight')
+
+# Calculate probability directly using simulated data
+mean(df['MaleHeight'] >= 170 & df['MaleHeight'] <= 172)
+
+# Calculate probability using the relative frequency histogram
+p1 = ggplot(data = df) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(count)/sum(after_stat(count)), fill = (after_stat(x)>=170 & after_stat(x)<=172)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Relative Frequency')
+
+
+# Calculate probability using the density histogram
+p2 = ggplot(data = df) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(density), fill = (after_stat(x)>=170 & after_stat(x)<=172)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Density')
+
+# Plot the histograms side-by-side
+p1 + p2 + plot_layout(ncol = 1)
+```
+
+Calculate the probability that a random student's height is in between 170 cm and 171 cm.
+
+```{r}
+# Parameters
+mu_Male = 170
+sigma_Male = 8
+
+# Bin width
+delta = 2.0
+
+nsimulations = 1e5
+simulatedData_Male = rnorm(nsimulations, mean = mu_Male, sd = sigma_Male)
+
+df = as.data.frame(simulatedData_Male)
+colnames(df) = c('MaleHeight')
+
+# Calculate probability directly using simulated data
+mean(df['MaleHeight'] >= 170 & df['MaleHeight'] <= 171)
+
+# Calculate probability using the relative frequency histogram
+p1 = ggplot(data = df) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(count)/sum(after_stat(count)), fill = (after_stat(x)>=170 & after_stat(x)<=171)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Relative Frequency')
+
+
+# Calculate probability using the density histogram
+p2 = ggplot(data = df) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(density), fill = (after_stat(x)>=170 & after_stat(x)<=171)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Density')
+
+# Plot the histograms side-by-side
+p1 + p2 + plot_layout(ncol = 1)
+```
+
+Histogram shape vs. bin width
+
+```{r}
+# Parameters
+mu_Male = 170
+sigma_Male = 8
+
+nsimulations = 1e5
+simulatedData_Male = rnorm(nsimulations, mean = mu_Male, sd = sigma_Male)
+
+df = as.data.frame(simulatedData_Male)
+colnames(df) = c('MaleHeight')
+
+# Bin width
+delta = 8.0
+
+# Plot the density histogram along with density curve for male student heights
+p1 = ggplot(data = df) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(density)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  stat_function(fun = dnorm, args = list(mean = mean(df$MaleHeight), sd = sd(df$MaleHeight))) +
+  labs(x = 'Height (cm)', y = 'Density')
+
+# Bin width
+delta = 4.0
+
+# Plot the density histogram along with density curve for male student heights
+p2 = ggplot(data = df) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(density)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  stat_function(fun = dnorm, args = list(mean = mean(df$MaleHeight), sd = sd(df$MaleHeight))) +
+  labs(x = 'Height (cm)', y = 'Density')
+
+# Bin width
+delta = 2.0
+
+# Plot the density histogram along with density curve for male student heights
+p3 = ggplot(data = df) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(density)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  stat_function(fun = dnorm, args = list(mean = mean(df$MaleHeight), sd = sd(df$MaleHeight))) +
+  labs(x = 'Height (cm)', y = 'Density')
+
+# Bin width
+delta = 0.5
+
+# Plot the density histogram along with density curve for male student heights
+p4 = ggplot(data = df) +
+  geom_histogram(aes(x = MaleHeight, y = after_stat(density)),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  stat_function(fun = dnorm, args = list(mean = mean(df$MaleHeight), sd = sd(df$MaleHeight))) +
+  labs(x = 'Height (cm)', y = 'Density')
+
+
+# Plot the histograms side-by-side
+p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+```
+
+Simulate heights of male students: $$X\sim N(\mu = 170\,\text{cm},\sigma = 8\,\text{cm})$$
+and female students: $$Y\sim N(\mu = 165\,\text{cm},\sigma = 3\,\text{cm})$$ and plot both the histograms together.
+
+```{r}
+# Parameters
+mu_Male = 170
+sigma_Male = 8
+mu_Female = 165
+sigma_Female = 3
+
+# Bin width
+delta = 2
+
+nsimulations = 1e5
+simulatedData_Male = rnorm(nsimulations, mean = mu_Male, sd = sigma_Male)
+simulatedData_Female = rnorm(nsimulations, mean = mu_Female, sd = sigma_Female)
+
+df = as.data.frame(cbind(simulatedData_Male, simulatedData_Female))
+colnames(df) = c('Male', 'Female')
+#head(df, 10)
+
+# Plot the relative frequency histogram for male and female students
+p1 = ggplot(data = df) +
+  geom_histogram(aes(x = Male, y = after_stat(count)/sum(after_stat(count)), fill = 'Male'),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', alpha = 0.4) +
+  geom_histogram(aes(x= Female, y = after_stat(count)/sum(after_stat(count)), fill = 'Female'),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Relative Frequency', fill = 'Gender')
+
+# Plot the density histogram for male and female students
+p2 = ggplot(data = df) +
+  geom_histogram(aes(x = Male, y = after_stat(density), fill = 'Male'),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', alpha = 0.4) +
+  geom_histogram(aes(x= Female, y = after_stat(density), fill = 'Female'),
+  breaks = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = delta),
+  colour = 'black', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Density', fill = 'Gender')
+
+
+# Plot the histograms side-by-side
+p1 + p2 + plot_layout(ncol = 2)
+```
+
+Consider $X\sim N(\mu = 170\,\text{cm},\sigma = 8\,\text{cm})$ as representing the height of a random student. We say $X$ is normally distributed with parameters mean $\mu= 170\,\text{cm}$ and standard deviation $\sigma = 8\,\text{cm}.$ The probability density function (PDF) of $X$ is given by $$f_X(x) = \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2} = \frac{1}{\sqrt{2\pi8^2}}e^{-\frac{1}{2}\left(\frac{x-170}{8}\right)^2}.$$ For example, $f_X(160)$ gives the probabilty per unit interval (that is, probability per cm) concentrated at 160 cm. The $\texttt{dnorm}$ function evaluates the PDF for any input $x$ such as $\texttt{dnorm(160, mean = 170, sd = 8)}.$ The result is also called the likelihood at $x=160\,\text{cm}.$ Think of the PDF as a smooth curve approximating the density histogram.
+
+In order to calculate a probability like $P(160\leq X\leq162),$ we simply calculate the area under the PDF curve between $x=160$ and $x=162.$ The area under the PDF is calculated using the $\texttt{pnorm}$ function. For example, $$\texttt{pnorm(160, mean = 170, sd = 8)}$$ gives the probability $P(X \leq160) = F_X(160)$ which is the area under the PDF curve from $-\infty$ to $160,$ and $$\texttt{pnorm(162, mean = 170, sd = 8)-pnorm(160, mean = 170, sd = 8)}$$ gives the probability $P(160\leq X\leq162).$ This is similar to the area under the density histogram between 160 cm and 162 cm.
+
+```{r}
+# Parameters
+mu_Male = 170
+sigma_Male = 8
+
+nsimulations = 1e5
+simulatedData_Male = rnorm(nsimulations, mean = mu_Male, sd = sigma_Male)
+
+dfHeights = as.data.frame(simulatedData_Male)
+colnames(dfHeights) = c('MaleHeight')
+
+# P(160 <= X <= 162) using simulated data
+mean(dfHeights['MaleHeight'] >= 160 & dfHeights['MaleHeight'] <= 162)
+
+# P(160 <= X <= 162) using area under the PDF
+pnorm(162, mean = mu_Male, sd = sigma_Male) - pnorm(160, mean = mu_Male, sd = sigma_Male)
+
+# P(160 <= X <= 162) using area under the density histogram segment that is approximating the PDF over 160 to 162
+dnorm(161, mean = mu_Male, sd = sigma_Male) * (162-160) # This is like area = height multiplied by base width
+
+# Approximating the PDF at 161 cm (likelihood at 161 cm)
+h = 1.0
+(pnorm(161+(h/2), mean = mu_Male, sd = sigma_Male) - pnorm(161-(h/2), mean = mu_Male, sd = sigma_Male))/h
+# Exact PDF evaluated at x = 161
+dnorm(161, mean = mu_Male, sd = sigma_Male)
+
+# Likelihood ratio
+dnorm(162, mean = mu_Male, sd = sigma_Male) / dnorm(160, mean = mu_Male, sd = sigma_Male)
+
+# The area under the PDF between 160 cm and 162 cm highlighted
+x = seq(mu_Male-4*sigma_Male, mu_Male+4*sigma_Male, by = (8*sigma_Male)/1000)
+y = dnorm(x = x, mean = mu_Male, sd = sigma_Male)
+
+df = data.frame(x, y)
+p = ggplot(df) +
+  geom_line(aes(x, y)) +
+  geom_ribbon(data = df %>% filter(x >= 160 & x <= 162),  aes(x = x,
+                  ymin = 0, ymax = y), fill = "blue") +
+  labs(x = 'x', y = 'f(x)', title = 'Probability Density Function of a Normal RV') +
+  theme(axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title =element_text(size = 14, face = "bold"))
+p
+```
+
+What about a probability like $P(X\geq 190) = 1 - F_X(190)$?
+
+```{r}
+# P(X >= 190) using simulated data
+mean(dfHeights['MaleHeight'] >= 190)
+
+# P(X >= 190) using area under the PDF
+1-pnorm(190, mu_Male, sigma_Male) # 1-F_X(190)
+pnorm(190, mu_Male, sigma_Male, lower.tail = FALSE) # 1-F_X(190)
+```
+
+```{r}
+pnorm(50, mean = 40, sd = 4, lower.tail = FALSE)
+```
+
+![](https://bl3302files.storage.live.com/y4mSacrhvmYQvAQs9HfveCtAfA3fJ0t7jP4GNhaY3UqVuxcYA-326aVrKCeU9xdhW3gwZrlXJJjJ8_IkQoYfnJMb4XrT9gfiExsipeWrIOPtuYYeCy15oYo5TbugNfLMPu9XUM_HBTaC8z139Vrnokl3ENXIIZnl0ZyLONkcDDnz19L0UBss_37QeUHgSFPK4za?width=451&height=163&cropmode=none)
+
+```{r}
+p = pnorm(50, mean = 40, sd = 4, lower.tail = FALSE)
+r = 1
+1-pnbinom(10-r, r, p)
+```
+
+PDF of a uniform random variable $X\sim\text{Unif}(a,b)$ is given by $f_X(x)=\begin{cases}\frac{1}{b-a}&\text{if }a\leq x\leq b\\0&\text{otherwise}.\end{cases}.$
+
+For example, consider $X\sim\text{Unif}(a=0, b= 1).$
+
+```{r}
+a = 0
+b = 1
+x = seq(a-2.5, b+2.5, by = .01)
+f_X = dunif(x, a, b)
+df = data.frame(x, f_X)
+p = ggplot(data = df, aes(x = x, y = f_X)) +
+    geom_line(aes(x, f_X)) +
+    geom_ribbon(data = df %>% filter(x >= 0.8 & x <= 1.0),  aes(x = x,
+                  ymin = 0, ymax = f_X), fill = "blue") +
+    labs(x = 'x', y = 'f_X(x)', title = 'Probability Density Function of a Uniform RV') +
+    theme(axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title =element_text(size = 14, face = "bold"))
+p
+```
+
+At a particular bus stop buses arrive and leave at 15 minute intervals (2:00, 2:15, 2:30 etc.)
+
+Passengers arrive at a bus stop uniformly between 2:00 and 2:30 PM. Define a random variable $X$ that captures the arrival time in minutes of a random passenger starting from 2 PM.
+
+$$X\sim\text{Unif}(a=0, b=30).$$
+
+1. What is the probability that a passenger has to wait less than 5 minutes for a bus?
+$P((10 < X < 15)\ \text{OR}\ (25 < X < 30)) = P(10 < X <15) + P(25 < X < 30).$
+2. What is the probability that a passenger has to wait more than 14 minutes for a bus? $P((0<X<1)\ \text{OR}\ (15 < X < 16)) = P(0<X<1) + P(15<X<16).$
+
+```{r}
+a = 0
+b = 30
+punif(10, a, b) # P(X <= 10) cumulative distribution function (CDF)
+punif(15, a, b)- punif(10, a, b) # P(10 <= X <= 15)
+punif(30, a, b)- punif(25, a, b) # P(25 <= X <= 30)
+punif(15, a, b)- punif(10, a, b)+punif(30, a, b)- punif(25, a, b)
+punif(1, a, b) - punif(0, a, b) + punif(16, a, b) - punif(15, a, b)
+```
+
+Simulate a uniform random variable $X\sim\text{Unif}(a=0, b=1)$ using the $\texttt{runif()}$ function.
+
+```{r}
+# Parameters
+a = 0
+b = 1
+
+# Bin width
+delta = 0.1
+
+# Simulate data
+nsimulations = 1e4
+simulatedData = runif(nsimulations, a, b)
+df = as.data.frame(simulatedData)
+colnames(df) = c('SimulatedValues')
+
+# Plot the frequency histogram
+p1 = ggplot(data = df) +
+  geom_histogram(aes(x = SimulatedValues, y = after_stat(count)),
+  breaks = seq(a-2, b+2, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Time (hrs)', y = 'Frequency')
+
+# Plot the relative frequency histogram
+p2 = ggplot(data = df) +
+  geom_histogram(aes(x = SimulatedValues, y = after_stat(count)/sum(after_stat(count))),
+  breaks = seq(a-2, b+2, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Relative Frequency')
+
+# Plot the density histogram
+p3 = ggplot(data = df) +
+  geom_histogram(aes(x = SimulatedValues, y = after_stat(density)),
+  breaks = seq(a-2, b+2, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Height (cm)', y = 'Density')
+
+# Plot the density histogram along with density curve
+p4 = ggplot(data = df) +
+  geom_histogram(aes(x = SimulatedValues, y = after_stat(density)),
+  breaks = seq(a-2, b+2, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  stat_function(fun = dunif, args = list(min = min(df$SimulatedValues), max = max(df$SimulatedValues))) +
+  labs(x = 'Height (cm)', y = 'Density')
+
+
+# Plot the histograms side-by-side
+p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+```
+
+```{r}
+max(df$SimulatedValues)
+```
+
+Simulate failure times of laptop modeled by an exponential random variable: $$T\sim\text{Exp}\left(\lambda = \frac{1}{5000}\,\frac{\text{failures}}{\text{hour}}\right).$$
+
+$T$ is the time until the next failure of a random laptop given that on an average there are 1/5000 failures per hour.
+
+1. **Frequency histogram**, where each bin has a height equal to the number of laptops whose failure times (in 5000 hours) fall in that bin);
+2. **Relative frequency histogram**, where each bin has a height equal to the proportion of laptops whose failure times (in 5000 hours) fall in that bin);
+3. **Density histogram**, where each bin has a height equal to the proportion of laptops whose failure times (in 5000 hours) in that bin divided by the bin width).
+
+```{r}
+#rpois(1e2, lambda = 1) # X~Poi(lambda = 1 failures per 5000 hour)
+mean(rexp(1e6, rate = 1/5000))
+#rnorm(1e2, mean = 170, sd = 8)
+#rbinom(1e2, 12, 0.2)
+```
+
+```{r}
+# Parameters
+lambda = 1/5000
+
+# Bin width
+delta = 1000
+
+nsimulations = 1e5
+simulatedData = rexp(nsimulations, rate = 1/5000)
+
+df = as.data.frame(simulatedData)
+colnames(df) = c('FailureTime')
+
+# Plot the frequency histogram for failure times
+p1 = ggplot(data = df) +
+  geom_histogram(aes(x = FailureTime, y = after_stat(count)),
+  breaks = seq(0, 10000, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Time (Hours)', y = 'Frequency')
+
+# Plot the relative frequency histogram for failure time
+p2 = ggplot(data = df) +
+  geom_histogram(aes(x = FailureTime, y = after_stat(count)/sum(after_stat(count))),
+  breaks =seq(0, 10000, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Time (Hours)', y = 'Relative Frequency')
+
+# Plot the density histogram for failure time
+p3 = ggplot(data = df) +
+  geom_histogram(aes(x = FailureTime, y = after_stat(density)),
+  breaks = seq(0, 10000, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Time (Hours)', y = 'Density')
+
+# Plot the density histogram along with density curve for failure time
+p4 = ggplot(data = df) +
+  geom_histogram(aes(x = FailureTime, y = after_stat(density)),
+  breaks = seq(0, 10000, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  stat_function(fun = dexp, args = list(rate = 1 / mean(df$FailureTime))) +
+  labs(x = 'Time (Hours)', y = 'Density')
+
+# Plot the histograms side-by-side
+p1 + p2 + p3 + p4 + plot_layout(ncol = 2)
+```
+
+Comparison of the PDF of exponential random variables with different rate parameters $\lambda$:
+
+$$T_1\sim\text{Exp}(\lambda = 2)\, \text{and } T_2\sim\text{Exp}(\lambda = 1/2).$$
+
+```{r}
+t = seq(0, 20, by = .05)
+f_T1 = dexp(t, rate = 2)
+df1 = data.frame(t, f_T1)
+f_T2 = dexp(t, rate = 1/2)
+df2 = data.frame(t, f_T2)
+p1 = ggplot(data = df1) +
+    geom_line(aes(x = t, y = f_T1)) +
+    geom_ribbon(data = df1 %>% filter(t >= 1 & t <= 2),  aes(x = t,
+                  ymin = 0, ymax = f_T1), fill = "blue") +
+    labs(x = 't', y = 'f(t)', title = 'Probability Density Function lambda = 2') +
+    theme(axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title =element_text(size = 14, face = "bold"))
+
+p2 = ggplot(data = df2) +
+    geom_line(aes(x = t, y = f_T2)) +
+    geom_ribbon(data = df2 %>% filter(t >= 1 & t <= 2),  aes(x = t,
+                  ymin = 0, ymax = f_T2), fill = "blue") +
+    labs(x = 't', y = 'f(t)', title = 'Probability Density Function lambda = 1/2') +
+    theme(axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title =element_text(size = 14, face = "bold"))
+
+p1 + p2 + plot_layout(ncol = 2)
+```
+
+PDF of an exponential random variable $T\sim\text{Exp}(\lambda)$ is given by $$f_T(t)=\begin{cases}\lambda e^{-\lambda t}&\text{if }t\geq 0\\0&\text{otherwise}.\end{cases}.$$ For example, consider $T\sim\text{Exp}(\lambda = 2).$
+
+```{r}
+t = seq(0, 20, by = .05)
+f_T = dexp(t, rate = 2)
+df = data.frame(t, f_T)
+p = ggplot(data = df) +
+    geom_line(aes(x = t, y = f_T)) +
+    geom_ribbon(data = df %>% filter(t >= 1 & t <= 10),  aes(x = t,
+                  ymin = 0, ymax = f_T), fill = "blue") +
+    labs(x = 't', y = 'f(t)', title = 'Probability Density Function') +
+    theme(axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title =element_text(size = 14, face = "bold"))
+p
+```
+
+![](https://bl3302files.storage.live.com/y4muNx5nrPMNokpEQ0hSFncnokoy7ocFbPYJgo9h9LxDCilpJh9aK--oJcCVqWtq8tgTWLJg8Qyi0wck3ZhlgU4-U_0BzrCKDXY3rjD9umOzwt53rC5nL4f59c8yvmKFeGCGKKqMrdqBuOHIh6SFoF0D7jibQ-qreLEAbFUqtkNEYOilzbEZ-3LF2qUTh6TAzzV?width=660&height=391&cropmode=none)
+
+```{r}
+pexp(11, rate = 2) - pexp(9, rate = 2)
+pexp(11, rate = 2, lower.tail=FALSE)
+```
+
+```{r}
+# P(T > 5*365*4 hours), T~Exp(rate = 1/5000 failure per hour)
+1-pexp(5*365*4, rate = 1/5000) # 1 - P(T <= 5*365*4)
+pexp(5*365*4, rate = 1/5000, lower.tail = FALSE)
+
+# P(T > 4 years), T~Exp(rate = 365*24/5000 failure per year)
+1-pexp((5*4)/24, rate = 365*24/5000)
+```
+
+![](https://bl3302files.storage.live.com/y4mqcunFWufbZoqiEdv6VwMJzoCf_Tr9ITfxRfrY9zHp84-QQrqHbxtKHBiUcvgQmWq0sF1xkauf72M_h_ndzOWXjd_qYeqovJY_jOvAeHy9fF7lu0fdUmBVVk4-lo_RpTjRy8V2S4ECquJl-yMa1mFYRAAIvGXx0NEl_ABUZHaQ_M2g3PydLWB9uA7pplK9aKn?width=660&height=302&cropmode=none)
+
+```{r}
+nsimulations = 1e5
+dataA = rnorm(nsimulations, mean = 20, sd = 4)
+dataB = rexp(nsimulations, rate = 1/20)
+pA = mean(dataA > 18)
+pB = mean(dataB > 18)
+pA
+pB
+pA = pnorm(18, mean = 20, sd = 4, lower.tail = FALSE)
+pB = pexp(18, rate = 1/20, lower.tail = FALSE)
+pA
+pB
+# Probability that the screen is manufactured by A given that T > 18
+(pA * 0.5) / (pA * 0.5 + pB * 0.5)
+# Probability that the screen is manufactured by B given that T > 18
+(pB * 0.5) / (pB * 0.5 + pA * 0.5)
+```
+
+![](https://bl3302files.storage.live.com/y4mglacF4S9CUNNCOSu753zK6KisVN3fL8NHVXRNxAFa-OxsgVHACzz8lG8KQuXXY-NPrTcLUm7Sixhoqc9dyApmhdspw3EZiXC5AlSmBE2_CfOXhSzoHtYI19eX_Lvo3zck5LHSwZVbWE9pOOTV3ZOzMxbicbKZuTV0IGrxF-xjpPf5e0ZV8kR9BaL5wHQR162?width=660&height=309&cropmode=none)
+
+```{r}
+# T ~ Exp(rate = 1/10 calls per minute)
+# P(T > 20)
+pexp(20, rate = 1/10, lower.tail = FALSE)
+```
+
+```{r}
+changing_rate_noemp = runif(1, min = -0.02, max = 0.01)
+changing_rate_noemp
+changing_rate_avgclaimemp = rnorm(1, mean = 0.01, sd = 0.02)
+changing_rate_avgclaimemp
+sim_mon = 12
+n_employee = 20
+125*n_employee * ((1 + changing_rate_noemp)^c(1:sim_mon))
+avg_claim_per_employee = 250
+print('------')
+avg_claim_per_employee *((1 + changing_rate_avgclaimemp)^c(1:sim_mon))
+```
+
+Employee Insurance Problem: read the problem statement in the **AdditionalNotes/** folder
+
+```{r}
+# Problem-1
+HungryDawg_sim_fun = function(n_employee,
+                               avg_claim_per_employee,
+                               amt_paid_per_employee,
+                               sim_mon,
+                               nsimulations,
+                               incre_rate_employee_min,
+                               incre_rate_employee_max,
+                               incre_rate_avg_claim_mean,
+                               incre_rate_avg_claim_sd
+){
+  # Create empty array to store cost to company
+  cost_to_company = c()
+  # Simulate for each scenario
+  for (k in c(1:nsimulations)){
+    # Uniform distribution for changing rate of number of employees
+    changing_rate_noemp = runif(1, min = incre_rate_employee_min, max = incre_rate_employee_max)
+
+    # Normal distribution for changing rate of average claim per employee
+    changing_rate_avgclaimemp = rnorm(1, mean = incre_rate_avg_claim_mean,
+                                     sd = incre_rate_avg_claim_sd)
+
+    # Forecast number of employees in the future months
+    forecast_n_employee = n_employee * ((1 + changing_rate_noemp)^c(1:sim_mon))
+
+    # Forecast monthly premium amount paid in the future months
+    forecast_monthly_amount_paid = amt_paid_per_employee * forecast_n_employee
+
+    # Forecast monthly average claim per employee in the future months
+    forecast_avgclaim_employee = avg_claim_per_employee *((1 + changing_rate_avgclaimemp)^c(1:sim_mon))
+
+    # Forecast monthly total claim in the future months
+    forecast_monthly_total_claim = forecast_avgclaim_employee * forecast_n_employee
+
+    # Update total cost to company
+    cost_to_company[k] = sum(forecast_monthly_total_claim - forecast_monthly_amount_paid)
+  }
+
+  return(cost_to_company)
+}
+```
+
+```{r}
+set.seed(1)
+test1 = HungryDawg_sim_fun(n_employee = 10,
+                            avg_claim_per_employee = 250,
+                            amt_paid_per_employee = 125,
+                            sim_mon = 12,
+                            nsimulations = 5,
+                            incre_rate_employee_min = -0.01,
+                            incre_rate_employee_max = 0.01,
+                            incre_rate_avg_claim_mean = 0.01,
+                            incre_rate_avg_claim_sd = 0.02)
+test1
+```
+
+```{r}
+# Problem-2
+budget = 20e06
+
+# (a) Simulate 10000 10-month costs of the current health plan
+set.seed(2)
+vec_sim_cost_10000 = HungryDawg_sim_fun(n_employee = ?,
+                                        avg_claim_per_employee = ?,
+                                        amt_paid_per_employee = ?,
+                                        sim_mon = 10,
+                                        sim_times = 10000,
+                                        incre_rate_employee_min = -0.02,
+                                        incre_rate_employee_max = 0.04,
+                                        incre_rate_avg_claim_mean = 0.005,
+                                        incre_rate_avg_claim_sd = 0.01)
+
+# (b) Compute mean and standard deviation of the simulated costs
+mean_cost_10000 = ?(vec_sim_cost_10000)
+sd_cost_10000 = ?(vec_sim_cost_10000)
+
+#(c) Compute the percentage of simulated scenarios in which cost exceeds the budget
+pct_budget_empty_147 = (sum(? > ?) / 10000) * 100
+
+# (d) If the company increases the monthly premium to $150 per employee, what is
+# the estimated probability that the company will deplete their budget for the health plan?
+set.seed(2)
+vec_sim_cost_10000 = HungryDawg_sim_fun(n_employee = 19735,
+                                        avg_claim_per_employee = 224,
+                                        amt_paid_per_employee = ?,
+                                        sim_mon = 10,
+                                        sim_times = 10000,
+                                        incre_rate_employee_min = -0.02,
+                                        incre_rate_employee_max = 0.04,
+                                        incre_rate_avg_claim_mean = 0.005,
+                                        incre_rate_avg_claim_sd = 0.01)
+
+pct_budget_empty_150 =  (?(vec_sim_cost_10000 > ?) / 10000) * 100
+
+#(e) Simulate to select the lowest premium so that the risk of depleting the
+# budget is less than 5%
+premium_list = c(?, ?, ?, ?, ?, ?, ?)
+# Create empty vector to store risk probability percentagefor each premium
+pct_risk_probability = c()
+for (k in c(1:length(?))){
+  set.seed(2)
+  vec_sim_cost_10000 = HungryDawg_sim_fun(n_employee = 19735,
+                                        avg_claim_per_employee = 224,
+                                        amt_paid_per_employee = ?,
+                                        sim_mon = 10,
+                                        sim_times = 10000,
+                                        incre_rate_employee_min = -0.02,
+                                        incre_rate_employee_max = 0.04,
+                                        incre_rate_avg_claim_mean = 0.005,
+                                        incre_rate_avg_claim_sd = 0.01)
+  # Update risk probability
+  pct_risk_probability[k] = (?(? > ?) / 10000) * 100
+}
+# Select smallest premium for which risk probability is less than 5%
+slct_premium = premium_list[which(? < 5)[1]]
+```
+
+PDF of an Beta random variable $P\sim\text{Beta}(a, b)$ is given by $$f_P(p)=\begin{cases}\frac{p^{a-1}(1-p)^{b-1}}{\int_0^1p^{a-1}(1-p)^{b-1}}&\text{if }p\geq 0\\0&\text{otherwise}.\end{cases}.$$ For example, consider $P\sim\text{Beta}(a=1,b=1).$
+
+```{r}
+a = 1
+b = 1
+p = seq(a-2.5, b+2.5, by = .01)
+f_P = dbeta(p, a, b)
+df = data.frame(p, f_P)
+p1 = ggplot(data = df) +
+    geom_line(aes(x = p, y = f_P)) +
+    # geom_ribbon(data = df %>% filter(x >= 0.8 & x <= 1.0),  aes(x = x,
+    #               ymin = 0, ymax = f_X), fill = "blue") +
+    labs(x = 'p', y = 'f_P(p)', title = 'Probability Density Function of a Beta RV with a = 1, b = 1') +
+    theme(axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title =element_text(size = 14, face = "bold"))
+
+# Out of 10 tosses, 8 are heads and 2 are tails
+f_P = dbeta(p, a+8, b+2)
+df = data.frame(p, f_P)
+p2 = ggplot(data = df) +
+    geom_line(aes(x = p, y = f_P)) +
+    # geom_ribbon(data = df %>% filter(x >= 0.8 & x <= 1.0),  aes(x = x,
+    #               ymin = 0, ymax = f_X), fill = "blue") +
+    labs(x = 'p', y = 'f_P(p)', title = 'Updated Probability Density Function of a Beta RV with a = 1+8, b = 1+2') +
+    theme(axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title =element_text(size = 14, face = "bold"))
+
+# Out of 100 tosses, 80 are heads and 20 are tails
+f_P = dbeta(p, a+80, b+20)
+df = data.frame(p, f_P)
+p3 = ggplot(data = df) +
+    geom_line(aes(x = p, y = f_P)) +
+    # geom_ribbon(data = df %>% filter(x >= 0.8 & x <= 1.0),  aes(x = x,
+    #               ymin = 0, ymax = f_X), fill = "blue") +
+    labs(x = 'p', y = 'f_P(p)', title = 'Updated Probability Density Function of a Beta RV with a = 1+80, b = 1+20') +
+    theme(axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title =element_text(size = 14, face = "bold"))
+
+# Out of 1000 tosses, 800 are heads and 200 are tails
+f_P = dbeta(p, a+800, b+200)
+df = data.frame(p, f_P)
+p4 = ggplot(data = df) +
+    geom_line(aes(x = p, y = f_P)) +
+    # geom_ribbon(data = df %>% filter(x >= 0.8 & x <= 1.0),  aes(x = x,
+    #               ymin = 0, ymax = f_X), fill = "blue") +
+    labs(x = 'p', y = 'f_P(p)', title = 'Updated Probability Density Function of a Beta RV with a = 1+800, b = 1+200') +
+    theme(axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title =element_text(size = 14, face = "bold"))
+
+
+p1 + p2 + p3 + p4 + plot_layout(ncol = 1)
+
+p = 800/(800+200)
+p
+p = rbeta(1, 1+800, 1+200)
+p
+```
+
+Suppose you want to buy a book from Amazon. There are 3 sellers offering the book at essentially the same price. The sellers' ratings details are as follows:
+
+* Seller-A has 94% positive feedback from 85,193 reviews;
+* Seller-B has 98% positive feedback from 20,785 reviews;
+* Seller-C has 99% positive feedback from 840 reviews.
+
+Who will you buy the book from?
+
+Let $P_A, P_B,$ and $P_C$ be the probabilities that sellers-A, B, and C will give a positive service. We can start with a uniform prior distribution: $$P_A\sim\text{Beta}(a = 1,\,b = 1),$$ $$P_B\sim\text{Beta}(a = 1,\,b = 1),$$ $$P_C\sim\text{Beta}(a = 1,\,b = 1).$$ We update the prior distributions to posterior distributions after observing the review data: $$P_A\sim\text{Beta}(a = 1+0.94\times85193,\,b = 1+(1-0.94)\times85193),$$ $$P_B\sim\text{Beta}(a = 1+0.98\times20785,\,b = 1+(1-0.98)\times20785),$$ $$P_C\sim\text{Beta}(a = 1+0.99\times840,\,b = 1+(1-0.99)\times840).$$
+
+
+```{r}
+a = 1
+b = 1
+nsimulations = 1e5
+
+simulatedData_A = rbeta(nsimulations, a + 0.94*85193, b + (1-0.94)*85193)
+simulatedData_B = rbeta(nsimulations, a + 0.98*20785, b + (1-0.98)*20785)
+simulatedData_C = rbeta(nsimulations, a + 0.99*840, b + (1-0.99)*840)
+
+mean(simulatedData_A > simulatedData_B & simulatedData_A > simulatedData_C)
+mean(simulatedData_B > simulatedData_A & simulatedData_B > simulatedData_C)
+mean(simulatedData_C > simulatedData_A & simulatedData_C > simulatedData_B)
+```
+
