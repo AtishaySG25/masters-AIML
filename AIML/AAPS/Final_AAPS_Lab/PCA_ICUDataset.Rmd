@@ -1,0 +1,204 @@
+---
+title: Principal Component Analysis (PCA) Coding Assignment
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(mice)
+```
+
+```{r}
+## Load ICU dataset
+file = 'Data/ICU_filtered.csv'
+dfICU = read.csv(file, header = TRUE, stringsAsFactors = TRUE)
+str(dfICU)
+```
+
+```{r}
+## Print first 5 samples of data frame
+head(dfICU, n = 5)
+```
+
+```{r}
+## Plot fraction of missing values (NAs) in each column of the data frame
+pMissDF = setNames(stack(sapply(dfICU, function(x){(sum(is.na(x))/length(x))*100}))[2:1], c('Feature','Value'))
+p = ggplot(data = pMissDF, aes(x = Feature, y = Value)) +
+  geom_bar(stat = 'identity', fill = 'steelblue', width = 0.3) +
+  theme(text = element_text(size = 14, face = 'bold'),
+  axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  xlab('') + ylab('Percentage') +
+  ggtitle('Percentage of NAs across all features')  +
+  theme(plot.title = element_text(size = 12, hjust = 0.5),
+        axis.text = element_text(size = 8),
+        axis.text.x = element_text(size = 8),
+        axis.text.y = element_text(size = 10),
+        axis.title = element_text(size = 12, face = "bold"))
+p
+```
+
+```{r}
+## Drop columns with more than 20% missing values
+dfICU = dfICU %>% select(-c(pMissDF[pMissDF['Value'] > 20, 'Feature']))
+```
+
+```{r}
+## Collate 4 different ICU types (CCU, CSRU, SICU, CCU) into one column
+## called 'ICU', remove separate ICU columns and the following columns:
+## (1) 'recordid' (2) In.hospital_death (3) Length_of_stay
+dfICU[dfICU['CCU'] == 1, 'ICU'] = 1
+dfICU[dfICU['CSRU'] == 1, 'ICU'] = 2
+dfICU[dfICU['SICU'] == 1, 'ICU'] = 3
+dfICU[(dfICU['CCU'] == 0 ) & (dfICU['CSRU'] == 0) & (dfICU['SICU'] == 0), 'ICU'] = 4
+dfICU = dfICU %>% select(-c(CCU, CSRU, SICU, recordid, In.hospital_death, Length_of_stay))
+```
+
+```{r}
+## Create list of ordinal, categorical, and continuous features
+features = colnames(dfICU)
+ordinal_features = c('GCS_first')
+categorical_features = c('Gender', 'MechVent', 'ICU')
+continuous_features = features[c(!(colnames(dfICU) %in% c(ordinal_features, categorical_features)))]
+```
+
+```{r}
+## Convert ordinal and categorical columns to correct type
+dfICU[categorical_features] = lapply(dfICU[categorical_features], as.factor)
+dfICU[ordinal_features[1]] = lapply(dfICU[ordinal_features[1]], ordered, levels = seq(max(dfICU$GCS_first[!is.na(dfICU$GCS_first)]), min(dfICU$GCS_first[!is.na(dfICU$GCS_first)]), -1))
+str(dfICU)
+```
+
+```{r}
+# Impute missing values using the MICE package
+dfICU = complete(mice(dfICU, m = 40, maxit = 10, pred = quickpred(dfICU, minpuc = 0.25), seed = 500))
+```
+
+```{r}
+## Select only continuous features
+dfICU_continuous = dfICU %>% select(continuous_features)
+head(dfICU_continuous)
+```
+
+```{r}
+## Scale the data containing the continuous features and perform PCA
+# Scale the data containing the continuous features
+X = scale(dfICU_continuous) # note that the output of the scale function is a matrix
+
+# Covariance of scaled data matrix
+S = cov(X) 
+
+# Calculate eigenvectors and eigenvalues of covariance matrix
+e = eigen(S) 
+V = e$vectors
+
+
+lambda = e$values
+colnames(dfICU_continuous)
+print(V)
+print(lambda)
+```
+
+```{r}
+## Note that PCA can also be performed using R in-built function prcomp()
+prcomp(X)$rotation # extracting the eigenvectors matrix
+```
+
+```{r}
+## Plot PC1 loadings
+dfPCA = data.frame(V)
+colnames(dfPCA) = paste0('PC', c(1:ncol(V)), 'L')
+ggplot(data = dfPCA) +
+  geom_bar(aes(x = 1:nrow(dfPCA), y = PC1L), stat = 'identity', width = 0.3, fill = 'steelblue') +
+   labs(x = 'Feature', y = 'PC1 Loading') +
+   ggtitle("PC1 Loading for All Features") +
+   theme(plot.title = element_text(size = 16, hjust = 0.5),
+   axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 8),
+   axis.text.y = element_text(size = 10),
+   axis.title = element_text(size = 12, face = "bold"))
+```
+
+
+```{r}
+## Calculate PC scores of all samples
+PC_scores = X %*% V
+```
+
+```{r}
+## How much variance is explained by each principal direction
+## or each principal component?
+print(lambda)
+```
+
+```{r}
+## Percentage of total variance explained by each principal component
+percentage_explained_var = (lambda / sum(lambda)) * 100
+print(percentage_explained_var)
+```
+
+
+```{r}
+## How many minimum principal components are needed to explain more than
+## 80% of the variance in the data?
+n_PC = which(cumsum(percentage_explained_var) >= 80)[1]
+```
+
+```{r}
+## Can the PC scores seen in pairs also separate patients who received
+## mechanical ventilation or not?
+df = as.data.frame(cbind(PC_scores, dfICU$MechVent, dfICU$Gender))
+colnames(df) = c(paste0('PC', c(1:ncol(V)), 'S'), 'MechVent', 'Gender')
+df[c('MechVent', 'Gender')] = lapply(df[c('MechVent', 'Gender')], as.factor)
+head(df)
+p = ggplot(data = df) +
+  geom_point(aes(x = PC1S, y = PC8S, color =  MechVent)) +
+  theme(aspect.ratio = 1)
+p
+```
+
+```{r}
+## Extract the top 7 features from the important principal components (Pc) that were identified earlier using the minimum-of-eighty-percent-variance threshold
+
+# Minmax-scale the absolute values of the PC loadings so that they are in the range 0 to 1
+V_normalized = apply(V[, 1:n_PC], 2, function(x){x = abs(x); return (x - min(x))/(max(x)-min(x))})
+
+# Extract the top 5 features loaded by each PC
+top = 7
+topvars = apply(V_normalized, 2, function(x){continuous_features[order(-x)[1:top]]})
+```
+
+```{r}
+## Feature selection approach-1: for each important PC, if more than 80% of the top features' loadings for that PC are significantly different among the two MechVent groups (0=no ventilation, 1=ventilation) using the Kruskal-Wallis test, then that PC is selected. At the end of this approach, a certain number of the important PCs will be selected such that the corresponding PC-scores for the samples will be column-joined with the ordinal and categorical features to form the final dataframe that will be used for clustering.
+
+alpha = 0.01 # p-value threshold
+# Fill your code here
+```
+
+```{r}
+## Feature selection approach-2: in the approach above, instead of column-binding the selected PC scores, first select the features that are common to the important PCs that are selected and column-bind those feature values with the ordinal and categorical features to create the final dataframe for clustering.
+
+# Fill your code here
+```
+
+```{r}
+## Feature selection approach-3: select an important PC if that PC-scores are significantly different among the two MechVent groups (0=no ventilation, 1=ventilation) using the Kruskal-Wallis test. At the end of this approach, a certain number of the important PCs will be selected such that the corresponding PC-scores for the samples will be column-joined with the ordinal and categorical features to form the final dataframe that will be used for clustering.
+
+alpha = 0.01 # p-value threshold
+# Fill your code here
+```
+
+```{r}
+## Feature selection approach-4: in the approach above, instead of column-binding the selected PC scores, first select the features that are common to the important PCs that are selected and column-bind those feature values with the ordinal and categorical features to create the final dataframe for clustering.
+
+# Fill your code here
+```
+
+```{r}
+## The dataframes from the steps above are clustered using K-means with a custom distance metric (extension of Gower's distance). This will be implemented in Python.
+```
+
+```{r}
+## The dataframes from the steps above are used to build supervised models with MechVent as the target variable. This will also be implemented in Python.
+```
+

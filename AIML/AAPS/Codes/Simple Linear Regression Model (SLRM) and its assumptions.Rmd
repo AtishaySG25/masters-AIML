@@ -1,0 +1,128 @@
+---
+title: "Linear Regression Models, Segment 1, Topic 2: Simple Linear Regression Model (SLRM) and its assumptions
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load the mtcars dataset
+file = 'D:/AAPS/Codes/Data/mtcars.csv'
+carData = read.csv(file, header = TRUE, row.names = 1, stringsAsFactors = FALSE)
+str(carData)
+```
+
+```{r}
+# Convert categorical columns to represent factor levels
+categorical_cols = c('cyl', 'vs', 'am', 'gear', 'carb')
+carData[categorical_cols] = lapply(carData[categorical_cols], as.factor)
+str(carData)
+```
+
+```{r}
+# Print the first five rows (or samples) in the data frame
+head(carData, 5)
+```
+
+```{r}
+# Ideal population model for mpg vs. hp 
+model_ideal = nls(data = carData, mpg ~ (1 / hp) * a + b * hp, start = list(a = 1, b = 1))
+calcmpgIdeal = function(hp){
+  return(predict(model_ideal, list(hp = hp)))
+}
+```
+
+```{r}
+# Ideal Population data and relationship between mpg and hp
+hp_population = seq(min(carData$hp), max(carData$hp), by = 0.1)
+mpg_population_ideal = calcmpgIdeal(hp_population)
+carDataPopIdeal = data.frame(hp_population, mpg_population_ideal)
+colnames(carDataPopIdeal) = c('hpPopulation', 'mpgPopulationIdeal')
+
+# Predictor noise
+noise_internal = rnorm(length(hp_population), mean = 0, sd = 0.05)
+
+# Response noise
+noise_external = rnorm(length(hp_population), mean = 0, sd = 1)
+
+# Real (noisy) population data and relationship between mpg and hp
+mpg_population_noisy = calcmpgIdeal(hp_population + noise_internal)  + noise_external
+carDataPopNoisy = data.frame(hp_population, mpg_population_noisy)
+colnames(carDataPopNoisy) = c('hpPopulation', 'mpgPopulationNoisy')
+```
+
+```{r}
+# Fit a simple linear regression model for the population data
+model = lm(data = carDataPopNoisy, mpg_population_noisy ~ hp_population)
+
+# Print summary of model
+summary(model)
+```
+
+```{r}
+# Fit and draw population regression line using noisy measurements
+model = lm(data = carDataPopNoisy, mpg_population_noisy ~ hp_population)
+coef_population = coef(model)
+print(coef_population)
+ggplot(data = carDataPopNoisy, aes(x = hpPopulation, y = mpgPopulationNoisy)) +
+   geom_line(color = 'blue') +
+   geom_smooth(method = lm, formula = y ~ x, color = 'red') +
+   labs(x = 'HP', y = 'MPG') + 
+   ggtitle("Population regression line") +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 16, face = "bold"))
+```
+
+```{r}
+#  Draw random samples from the population
+nsamples = 32
+carDataSample = carDataPopNoisy[sample(nrow(carDataPopNoisy), nsamples), ]
+colnames(carDataSample) = c('hp', 'mpg')
+#head(carDataSample, n = nsamples)
+```
+
+```{r}
+# Fit and plot a simple linear regression model using sample data for mpg vs. hp
+model = lm(data = carDataSample, mpg ~ hp)
+summary(model)
+
+ggplot(data = carDataSample, aes(x = hp, y = mpg)) +
+   geom_point(size = 1, color = 'blue') +
+   geom_smooth(method = lm, formula = y ~ x, color = 'red', se = FALSE) +
+   geom_point(aes(x = mean(hp), y = mean(mpg)), size = 1.5, color = 'green') +
+   geom_text(aes(x = mean(hp), y = mean(mpg)), label = 'mean sample', hjust = 0, vjust = -0.5, size = 6, color = 'green') +
+   labs(x = 'HP', y = 'MPG') + 
+   #ggtitle("Sample regression line") +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 14, face = "bold"))
+```
+
+```{r}
+# Plot actual and predicted response values clearly
+# showing the residuals
+carDataSample$mpg_predicted = predict(model)
+carDataSample$residuals = residuals(model)
+
+ggplot(data = carDataSample, aes(x = hp, y = mpg)) +
+   geom_point(size = 1, color = 'blue') +
+   geom_smooth(method = lm, formula = y ~ x, se = FALSE, color = 'red') +
+   geom_segment(aes(xend = hp, yend = mpg_predicted), alpha = 0.2) + 
+   geom_point(aes(color = abs(residuals), size = abs(residuals))) +
+   scale_color_continuous(low = "green", high = "red") + 
+   guides(color = FALSE, size = FALSE) + 
+   labs(x = 'HP', y = 'MPG') + 
+   #ggtitle("Sample regression line") +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 12),
+   axis.text.y = element_text(size = 12),
+   axis.title = element_text(size = 14, face = "bold"))
+```

@@ -1,0 +1,147 @@
+---
+title: "Linear Regression Models, Chapter 1, Topic 1: Data Generation Process Sample & Population"
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load the mtcars data set
+file = 'D:/AAPS/Codes/Data/mtcars.csv'
+carData = read.csv(file, header = TRUE, row.names = 1, stringsAsFactors = FALSE)
+str(carData)
+```
+
+```{r}
+# Convert categorical columns to represent factor levels
+categorical_cols = c('cyl', 'vs', 'am', 'gear', 'carb')
+carData[categorical_cols] = lapply(carData[categorical_cols], as.factor)
+str(carData)
+```
+
+```{r}
+# Print the first five rows (or samples) in the data frame
+head(carData, 5)
+```
+
+```{r}
+# Ideal population model for mpg vs. hp 
+model_ideal = nls(data = carData, mpg ~ (1 / hp) * a + b * hp, start = list(a = 1, b = 1))
+calcmpgIdeal = function(hp){
+  return(predict(model_ideal, list(hp = hp)))
+}
+```
+
+```{r}
+# Calculate and plot ideal mpg vs. hp for entire population
+hp_population = seq(min(carData$hp), max(carData$hp), by = 0.1)
+mpg_population_ideal = calcmpgIdeal(hp_population)
+carDataPopIdeal = data.frame(hp_population, mpg_population_ideal)
+colnames(carDataPopIdeal) = c('hpPopulation', 'mpgPopulationIdeal')
+
+ggplot(data = carDataPopIdeal, aes(x = hpPopulation, y = mpgPopulationIdeal)) +
+   geom_line(color = 'blue') +
+   labs(x = 'HP', y = 'MPG') + 
+   ggtitle("Ideal Fuel Efficiency as a Function of Horse Power for Entire Population") +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 14, face = "bold"))
+```
+
+```{r}
+# Predictor noise
+noise_internal = rnorm(length(hp_population), mean = 0, sd = 0.05)
+
+# Response noise
+noise_external = rnorm(length(hp_population), mean = 0, sd = 1)
+
+# Real (noisy) population data
+mpg_population_noisy = calcmpgIdeal(hp_population + noise_internal)  + noise_external
+carDataPopNoisy = data.frame(hp_population, mpg_population_noisy)
+colnames(carDataPopNoisy) = c('hpPopulation', 'mpgPopulationNoisy')
+
+# Plot noisy mpg vs. hp for entire population
+ggplot(data = carDataPopNoisy, aes(x = hpPopulation, y = mpgPopulationNoisy)) +
+   geom_line(color = 'blue') +
+   labs(x = 'HP', y = 'MPG') + 
+   ggtitle('Fuel Efficiency vs. Horse Power for Entire Population') +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 12),
+   axis.text.y = element_text(size = 12),
+   axis.title = element_text(size = 14, face = "bold"))  
+```
+
+```{r}
+# Sample from a population of cars from the fuel efficiency mtcars dataset
+nsamples = 16
+carDataSample = carDataPopNoisy[sample(nrow(carDataPopNoisy), nsamples), ]
+colnames(carDataSample) = c('hp', 'mpg')
+
+ggplot(data = carDataSample, aes(x = hp, y = mpg)) +
+   geom_point(size = 1, color = 'blue') +
+   labs(x = 'HP', y = 'MPG') + 
+   #ggtitle("Fuel Efficiency vs. Horse Power for Random Samples") +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 12),
+   axis.text.y = element_text(size = 12),
+   axis.title = element_text(size = 14, face = "bold"))
+```
+
+```{r}
+# Population data
+mu_father = 65 # mean of father heights
+sigma_father = 4 # standard deviation of father heights
+popsize = 1e5 # population size
+fatherHeights = rnorm(popsize, mean = mu_father, sd = sigma_father)
+
+dfHeights = as.data.frame(fatherHeights)
+colnames(dfHeights) = c('FatherHeight')
+
+# Plot the frequency histogram for father heights
+delta = 2.0 # bin width for histogram
+ggplot(data = dfHeights) +
+  geom_histogram(aes(x = FatherHeight, y = ..count..),
+  breaks = seq(mu_father-4*sigma_father, mu_father+4*sigma_father, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Father Height (inches)', y = 'Frequency')+
+  ggtitle('Father Heights in the Entire Population') +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 12),
+   axis.text.y = element_text(size = 12),
+   axis.title = element_text(size = 14, face = "bold"))
+```
+
+```{r}
+# Population mean of father's heights
+
+
+# Draw random samples from the population 
+
+```
+
+```{r}
+# Sample from a population of father heights
+n = 32
+fatherHeightsSample = dfHeights[sample(nrow(dfHeights), n), 'FatherHeight']
+dfHeightsSample = as.data.frame(fatherHeightsSample)
+colnames(dfHeightsSample) = c('FatherHeight')
+
+# Plot the frequency histogram for father heights
+delta = 2.0 # bin width for histogram
+ggplot(data = dfHeightsSample) +
+  geom_histogram(aes(x = FatherHeight, y = ..count..),
+  breaks = seq(mu_father-4*sigma_father, mu_father+4*sigma_father, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Father Height (inches)', y = 'Frequency')+
+  #ggtitle('Father Heights in a Sample of Size 32 Drawn from the Population') +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 12),
+   axis.text.y = element_text(size = 12),
+   axis.title = element_text(size = 14, face = "bold"))
+```

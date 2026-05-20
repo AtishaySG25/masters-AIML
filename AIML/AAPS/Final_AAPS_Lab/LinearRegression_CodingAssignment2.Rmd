@@ -1,0 +1,125 @@
+---
+title: "Linear Regression Coding Assignment-1"
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+# Load essential libraries
+library(ggplot2)
+library(dplyr)
+library(HSAUR)
+library(ggcorrplot)
+```
+
+```{r}
+# Load the heptathlon dataset
+data(heptathlon)
+str(heptathlon)
+```
+
+```{r}
+# Introduce a new column called sprint highlighting slow and fast sprinters
+heptathlon = heptathlon %>% mutate(sprint = ifelse(run200m <= 25 & run800m <= 129, 'fast', 'slow'))
+str(heptathlon)
+```
+
+```{r}
+# Change sprint column to factor type
+heptathlon['sprint'] = ?
+str(heptathlon)
+```
+
+```{r}
+# Make a scatter plot between *run200m* (x-axis) and *longjump* (y-axis). What do you observe from this plot?
+```
+
+```{r}
+# Correlation between all pairs of continuous predictors (leave out sprint and the response variable score). What do you observe?
+cor_matrix = cor(heptathlon %>% select(-c(?, ?)))
+ggcorrplot(cor_matrix, method = 'circle', lab = TRUE)
+```
+
+
+```{r}
+# Make a scatter plot between *run200m* (x-axis) and *longjump* (y-axis) now with the data points color-coded using *sprint*. What do you observe from this plot?
+
+```
+
+```{r}
+# Calculate Pearson's correlation between *run200m* and *longjump*. What do you observe?
+cor(?, ?)
+```
+
+```{r}
+# How many levels does the categorical variable *sprint* have? What is the reference level? 
+contrasts(?)
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *sprint*. Print the model's summary. How accurate is the model? How do the slow athletes' scores compare to the fast ones?
+model = ?
+summary(model)
+mean_slow = mean(heptathlon[heptathlon$sprint == ?, 'score'])
+mean_fast = 
+mean_fast
+mean_slow-mean_fast
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *shot* and *sprint*. Print the model's summary and answer the following questions:
+
+# 1. Did the addition of the new predictor *shot* improve the model accuracy? 
+# 2. *True/false* (explain in one line): the model suggests that there is a possible linear relationship between an athlete's score and shotput performance.
+# 3. For a 1 metre increase in shot put throw and with the same sprint performance, we can say with 95% confidence that the athlete's score will increase/decrease by an amount in the interval [?, ?].
+model = ?
+```
+
+```{r}
+#  Using the model built above, extract the slope and intercept for estimating the *score* of *slow* and *fast* athletes. 
+intercept_slow = 
+intercept_fast = 
+
+slope_slow = 
+slope_fast = 
+```
+
+```{r}
+# Complete the code below to build a linear model for approximating *score* as a function of *shot* and *sprint* using the training data. Predict the model performance by applying it to the test data.
+# Split the data into 80% train and 20% test parts
+set.seed(0)
+train_ind = sample(, size = )
+
+hDataTrain = 
+hDataTest = 
+
+# Build linear regression model
+model = 
+
+# Predict on the test data
+predict()
+
+# Print the true and predicted scores for the test data
+
+
+# Calculate the model error (mean-squared error for test data)
+
+
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *shot*, *javelin*, and *sprint*. Print the model's summary and answer the following questions:
+
+#1. Did the addition of the new predictor *javelin* improve the model accuracy? 
+#2. *True/false* (explain in one line): the model suggests that there is a possible linear relationship between an athlete's score and javelin performance.
+#3. For a 1 metre increase in shot put throw and with the same javelin and sprint performance, we can say with 95% confidence that the athlete's score will increase/decrease by an amount in the interval [?, ?].
+model = ?
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *highjump*, and *sprint*. Print the model's summary and answer the following questions:
+# 1. How accurate is this model?
+# 2. Considering a p-value of 10% as cutoff, are there any insignificant features?
+```
+

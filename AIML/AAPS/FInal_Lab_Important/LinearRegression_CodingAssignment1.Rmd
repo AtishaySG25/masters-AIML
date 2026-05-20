@@ -1,0 +1,156 @@
+---
+title: "Linear Regression Coding Assignment-1"
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+# Load essential libraries
+library(ggplot2)
+library(dplyr)
+```
+
+
+```{r}
+# Load the house price dataset
+hData = read.csv(?)
+str(hData)
+```
+
+```{r}
+# Convert 'locality', 'facing' and 'parking' columns to factors
+categorical_cols = ?
+hData[categorical_cols] = ?
+str(hData)
+```
+
+```{r}
+# Continuous columns
+continuous_cols = 
+```
+
+```{r}
+# Plot percentage of NAs in each column of the data frame
+hData_NA = setNames(stack(sapply(hData, function(x){(sum(is.na(x))/length(x))*100}))[2:1], c('Feature','Value'))
+p = ggplot(data = hData_NA, aes(x = Feature, y = Value)) +
+  geom_bar(stat = 'identity', fill = 'steelblue', width = 0.3) +
+  theme(text = element_text(size = 14, face = 'bold'),
+  axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  xlab('') + ylab('Percentage') +
+  ggtitle('Percentage of NAs across all features')
+p
+```
+
+```{r}
+# Add NA as a factor level for categorical columns 
+hData[categorical_cols] = ?
+str(hData)
+```
+
+```{r}
+# Make a histogram of rent values
+p = ggplot(data = ?) +
+  geom_histogram(aes(x = rent, y = after_stat(count)), breaks = seq(mean(?)-4*sd(?), ?, by = ?), color = 'black', fill = 'blue') +
+  labs(x = 'Rent', y = 'Frequency')  +
+   theme(axis.text = element_text(size = 8),
+   axis.text.x = element_text(size = 10),
+   axis.text.y = element_text(size = 10),
+   axis.title = element_text(size = 10, face = "bold"))  +
+  ggtitle('Histogram of house rents')
+p
+```
+
+```{r}
+# Build a linear model to predict price per square feet as a function of rent. How accurate is the model?
+model = 
+summary(model)
+```
+
+```{r}
+# Make a histogram of log-transformed rent values
+hData['logrent'] = ?
+p = ?
+```
+
+```{r}
+# Build a linear model to predict price per square feet as a function of logrent. Did log-transforming rent help improve the model accuracy?
+model = ?
+```
+
+
+```{r}
+# Build a linear model to predict log of price per square feet as a function of logrent. Did log-transforming the response variable price per square feet improve the model accuracy?
+hData['logprice_per_sqft'] = ?
+model = ?
+```
+
+```{r}
+# Build a linear model to predict sqrt of price per square feet as a function of logrent. Did sqrt-transforming the response variable price per square feet improve the model accuracy?
+hData['sqrtprice_per_sqft'] = ?
+model = ?
+```
+
+```{r}
+# Build a linear model to predict price per sqft as a function of area and rent. Did adding area as an additional predictor improve model accuracy (compared to only rent as the predictor)? Also, interpret the coefficient estimates for area and rent practically.
+model = ?
+```
+
+```{r}
+# Build a linear model to predict sqrt of price per sqft as a function of area and logrent. Did adding area as an additional predictor improve model accuracy (compared to only logrent as the predictor)? Also, interpret the coefficient estimates for area and logrent practically.
+model = ?
+```
+
+```{r}
+# Build a linear model to predict sqrt of price per sqft as a function of logarea and logrent. Did log-transforming area improve model accuracy?
+hData['logarea'] = ?
+model = ?
+```
+
+```{r}
+# Build a linear model to predict price per sqft as a function of area, rent, and parking (compared to just using area and rent as predictors). Did adding parking as an additional predictor improve model accuracy?
+model = ?
+```
+
+```{r}
+# Build a linear model to predict sqrt of price per sqft as a function of logarea, logrent, and locality. Did adding locality as an additional predictor improve model accuracy (compared to just using logarea and logrent as predictors)?
+model = ?
+```
+
+```{r}
+# Build a linear model to predict price per sqft as a function of area, rent, and parking. How many levels does the categorical feature parking have? How many new variables are introduced for the categorical variable parking? Interpret all regression coefficient estimates except the intercept coefficient estimate beta0 practically. Do the p-values suggest any insignificant features (that is, features which probably don't have a linear relationship with the response variable?
+model = ?
+```
+
+```{r}
+# Create new columns corresponding to scaled versions of the continuous columns
+hData[paste0('scaled_', continuous_cols)] = lapply(?, ?)
+str(hData)
+```
+
+```{r}
+# Build a linear model to predict scaled price per sqft as a function of scaled area and scaled rent. Compare this with the model built using unscaled data: that is, predict price per sqft as a function of area and rent. Does scaling help?
+```
+
+```{r}
+# Rebuild a linear model to predict sqrt of price per sqft as a function of logarea, logrent, and locality which we will evaluate using a train-test split of the dataset
+model = lm(data = hData, sqrtprice_per_sqft ~ ? + ? + ?)
+summary(model)
+```
+
+```{r}
+# Split data into train (80%) and test (20%) sets and evaluate model performance on train and test sets. Run this cell multiple times for a random splitting of the data into train and test sets and report the model performance on the resulting train and test sets. Is there much variability in the model performance across different test sets? If that is the case, then the model is not generalizing well and is overfitting the train set. Is it the case here?
+ind = sample(nrow(?), size = floor(?*nrow(hData)), replace = FALSE)
+hData_train = hData[?, ]
+hData_test = hData[-?, ]
+
+# Calculate RMSE (root-mean-squared-error) on train data
+train_error = sqrt(mean((hData_train$? - predict(model, ?))^2))
+
+# Calculate RMSE (root-mean-squared-error) on test data
+test_error = 
+
+print(train_error)
+print(test_error)
+```
+

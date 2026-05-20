@@ -1,0 +1,198 @@
+---
+title: "Lab-2 BDA Even Semester 2024"
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+# Load essential libraries
+library(ggplot2)
+library(dplyr)
+library(car)
+library(glmnet)
+```
+
+
+```{r}
+# Load the house price dataset
+hData = read.csv('../Data/houseprices_cleaned.csv', header = TRUE, stringsAsFactors = FALSE, na.strings = c("", 'Not available', 'NA', 'missing'))
+str(hData)
+```
+
+```{r}
+# Convert 'locality', 'facing' and 'parking' columns to factors
+categorical_cols = c('locality', 'facing', 'parking')
+hData[categorical_cols] = lapply(hData[categorical_cols], as.factor)
+str(hData)
+```
+
+```{r}
+# Continuous columns
+continuous_cols = setdiff(colnames(hData), categorical_cols)
+```
+
+
+```{r}
+# Fraction of NAs in each column of the data frame
+hData_NA = setNames(stack(sapply(hData, function(x){(sum(is.na(x))/length(x))*100}))[2:1], c('Feature','Value'))
+p = ggplot(data = hData_NA, aes(x = Feature, y = Value)) +
+  geom_bar(stat = 'identity', fill = 'steelblue', width = 0.3) +
+  theme(text = element_text(size = 14, face = 'bold'),
+  axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  xlab('') + ylab('Percentage') +
+  ggtitle('Percentage of NAs across all features')
+p
+```
+
+```{r}
+# Add NA as a factor level for categorical columns 
+hData[categorical_cols] = lapply(hData[categorical_cols], addNA)
+str(hData)
+```
+
+```{r}
+# Make a histogram of rent values
+p = ggplot(data = hData) +
+  geom_histogram(aes(x = rent, y = after_stat(count)), breaks = seq(mean(hData$rent)-4*sd(hData$rent), mean(hData$rent)+4*sd(hData$rent), by = 25000), color = 'black', fill = 'blue') +
+  labs(x = 'Rent', y = 'Frequency')  +
+   theme(axis.text = element_text(size = 8),
+   axis.text.x = element_text(size = 10),
+   axis.text.y = element_text(size = 10),
+   axis.title = element_text(size = 10, face = "bold"))  +
+  ggtitle('Histogram of house rents')
+p
+```
+
+```{r}
+# Build a linear model to predict price per square feet as a function of rent
+model = lm(data = hData, price_per_sqft ~ rent)
+summary(model)
+```
+
+```{r}
+# Make a histogram of transformed rent values
+hData['logrent'] = log(hData['rent'])
+p = ggplot(data = hData) +
+  geom_histogram(aes(x = logrent, y = after_stat(count)), breaks = seq(mean(hData$logrent)-4*sd(hData$logrent), mean(hData$logrent)+4*sd(hData$logrent), by = 0.5), color = 'black', fill = 'blue') +
+  labs(x = 'Rent', y = 'Frequency')  +
+   theme(axis.text = element_text(size = 8),
+   axis.text.x = element_text(size = 10),
+   axis.text.y = element_text(size = 10),
+   axis.title = element_text(size = 10, face = "bold"))  +
+  ggtitle('Histogram of log of house rents')
+p
+```
+
+```{r}
+# Build a linear model to predict price per square feet as a function of logrent
+model = lm(data = hData, price_per_sqft ~ logrent)
+summary(model)
+```
+
+
+```{r}
+# Build a linear model to predict log of price per square feet as a function of logrent
+hData['logprice_per_sqft'] = log(hData['price_per_sqft'])
+model = lm(data = hData, logprice_per_sqft ~ logrent)
+summary(model)
+```
+
+```{r}
+# Build a linear model to predict sqrt of price per square feet as a function of logrent
+hData['sqrtprice_per_sqft'] = sqrt(hData['price_per_sqft'])
+model = lm(data = hData, sqrtprice_per_sqft ~ logrent)
+summary(model)
+```
+
+
+
+```{r}
+# Construct OLS solution obtained using theoretical formulation for predicting price per sqft as a function of continuous predictor logrent and categorical predictor facing
+# Response values
+y = ?
+# Design matrix
+X = ?
+# Solve for the coefficient estimates
+betahat = ?
+print(betahat)
+```
+
+```{r}
+# Some properties of the residual vector
+# Build model for predicting price per sqft as a function of continuous predictor logrent and categorical predictor facing
+model = ?
+
+# Sum of residuals
+
+# Sample mean of the true response value
+
+# Sample mean of the fitted response values
+
+
+# Residuals are positively correlated with the true response values
+
+# Residuals are uncorrelated with the predicted response values
+```
+
+```{r}
+# Build a linear model to predict sqrt of price per sqft as a function of area and logrent
+model = lm(data = hData, sqrtprice_per_sqft ~ area + logrent)
+summary(model)
+```
+
+```{r}
+# Build a linear model to predict sqrt of price per sqft as a function of logarea and logrent
+hData['logarea'] = log(hData['area'])
+model = lm(data = hData, sqrtprice_per_sqft ~ logarea + logrent)
+summary(model)
+```
+
+```{r}
+# Build a linear model to predict sqrt of price per sqft as a function of logarea, logrent, and locality
+model = lm(data = hData, sqrtprice_per_sqft ~ logarea + logrent + locality)
+summary(model)
+```
+
+```{r}
+# Build a linear model to predict price per sqft as a function of area, rent, BHK, and bathrooms
+model = ?
+```
+
+
+```{r}
+# Build a linear model to predict price per sqft as a function of area, logrent, BHK, and bathrooms
+model = ?
+```
+
+
+```{r}
+# How do we understand if features are correlated? Use VIF
+model = ?
+```
+
+```{r}
+# Build a linear model to predict price per sqft as a function of area, logrent, BHK, and bathrooms without any interaction terms
+model = ?
+```
+
+```{r}
+# Build a linear model to predict price per sqft as a function of area, logrent, BHK, bathrooms and an interaction term between logrent and facing
+model = ?
+```
+
+```{r}
+# Build a linear model to predict price per sqft as a function of area, logrent, BHK, bathrooms, and parking without any interaction terms
+model = ?
+```
+
+```{r}
+# Build a linear model to predict price per sqft as a function of area, logrent, BHK, bathrooms, and parking and an interaction term between logrent and facing
+model = ?
+```
+
+```{r}
+# Prelude to regularization
+X = hData %>% select(-c(price_per_sqft))
+y = hData['price_per_sqft']
+```

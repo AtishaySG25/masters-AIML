@@ -1,0 +1,88 @@
+---
+title: "Lab-3 AIML Even Semester 2024"
+editor_options:
+  chunk_output_type: inline
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r}
+# Load essential libraries
+library(ggplot2)
+library(dplyr)
+library(car)
+library(glmnet)
+
+```
+
+```{r}
+library(caret)
+```
+
+
+```{r}
+df = read.csv('D:/AAPS/Codes/Data/diabetes.csv', header = TRUE, stringsAsFactors = FALSE)
+str(df)
+```
+
+```{r}
+summary(df)
+```
+
+
+```{r}
+model <- glm(Outcome ~ ., data = df, family = binomial(link = 'logit'))
+summary(model)
+```
+```{r}
+#confusion matrix
+# Assuming `train` is a vector of indices for the training set
+train <- sample(1:nrow(df), nrow(df) * 0.7)
+
+# Fit the model on the training set
+model <- glm(Outcome ~ ., data = df[train, ], family = binomial)
+
+# Make predictions on the training set
+predictions <- predict(model, newdata = df[train, ], type = "response")
+
+# Create the confusion matrix
+confusion_matrix <- table(df$Outcome[train], predictions > 0.5)
+confusion_matrix
+```
+```{r}
+library(pROC)
+
+# Fit the model on the training set
+model <- glm(Outcome ~ ., data = df[train, ], family = binomial)
+
+# Make predictions on the training set
+predictions <- predict(model, newdata = df[train, ], type = "response")
+
+# Compute the ROC curve
+roc_obj <- roc(df$Outcome[train], predictions)
+
+# Plot the ROC curve
+plot(roc_obj, main="ROC Curve", xlab="False Positive Rate", ylab="True Positive Rate")
+```
+
+
+```{r}
+library(PRROC)
+
+# Fit the model on the training set
+model <- glm(Outcome ~ ., data = df[train, ], family = binomial)
+
+# Make predictions on the training set
+predictions <- predict(model, newdata = df[train, ], type = "response")
+
+# Compute the precision-recall curve with curve = TRUE
+prc_obj <- pr.curve(scores.class0 = predictions, weights.class0 = df$Outcome[train], curve = TRUE)
+
+# Plot the precision-recall curve
+plot(prc_obj, main="Precision-Recall Curve", xlab="Recall", ylab="Precision")
+
+```
+

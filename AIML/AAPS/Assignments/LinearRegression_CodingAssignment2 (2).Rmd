@@ -1,0 +1,186 @@
+---
+title: "Linear Regression Coding Assignment-2"
+editor_options:
+  chunk_output_type: console
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r}
+# Load essential libraries
+library(ggplot2)
+library(dplyr)
+library(HSAUR)
+library(ggcorrplot)
+```
+
+```{r}
+# Load the heptathlon dataset
+data(heptathlon)
+str(heptathlon)
+```
+
+```{r}
+# Introduce a new column called sprint highlighting slow and fast sprinters
+heptathlon = heptathlon %>% mutate(sprint = ifelse(run200m <= 25 & run800m <= 129, 'fast', 'slow'))
+str(heptathlon)
+```
+
+```{r}
+# Change sprint column to factor type
+heptathlon['sprint'] = lapply(heptathlon['sprint'],as.factor)
+str(heptathlon)
+```
+
+```{r}
+# Make a scatter plot between *run200m* (x-axis) and *longjump* (y-axis). What do you observe from this plot?
+ggplot(heptathlon, aes(x = run200m, y = longjump)) +
+  geom_point() +
+  labs(x = "Run 200m", y = "Long Jump",
+  title = "Scatter Plot of Run 200m vs Long Jump")
+
+# there is no correlation between these two variables as the points are scattered without any distinct pattern
+```
+
+```{r}
+# Correlation between all pairs of continuous predictors (leave out sprint and the response variable score). What do you observe?
+cor_matrix = cor(heptathlon %>% select(-c(sprint, score)))
+ggcorrplot(cor_matrix, method = 'circle', lab = TRUE)
+
+# there is a strong positive correlations between high jump , hurdles and long jump, run200m.
+# there is strong negative correlation between run800m and shotput
+```
+
+
+```{r}
+# Make a scatter plot between *run200m* (x-axis) and *longjump* (y-axis) now with the data points color-coded using *sprint*. What do you observe from this plot?
+
+ggplot(heptathlon, aes(x = run200m, y = longjump, color = sprint)) +
+  geom_point() +
+  labs(x = "Run 200m", y = "Long Jump",
+       title = "Scatter Plot of Run 200m vs Long Jump (Color-coded by Sprint)")
+
+# there are more athletes with slow sprint speed than fast sprint speed indicating that most of them have slow sprint speeds also there is no clear correlation between both the variables as the data points are scattered without forming a distinct pattern
+
+```
+
+```{r}
+# Calculate Pearson's correlation between *run200m* and *longjump*. What do you observe?
+cor(heptathlon$run200m, heptathlon$longjump)
+
+# both the variables are strongly negatively correlated indicating that if one increases the other value decreases and vice versa
+```
+
+```{r}
+# How many levels does the categorical variable *sprint* have? What is the reference level? 
+contrasts(heptathlon$sprint)
+
+sprint_factor <- factor(c("slow", "fast"))
+
+cat("Levels in 'sprint':", levels(sprint_factor), "\n")
+
+cat("Reference level in 'sprint':", levels(sprint_factor)[1], "\n")
+
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *sprint*. Print the model's summary. How accurate is the model? How do the slow athletes' scores compare to the fast ones?
+model <- lm(score ~ sprint, data = heptathlon)
+summary(model)
+mean_slow = mean(heptathlon[heptathlon$sprint == 'slow', 'score'])
+mean_fast = mean(heptathlon[heptathlon$sprint == 'fast', 'score'])
+mean_fast
+mean_slow-mean_fast
+# it deviates about 448 units from the average scores
+# model explains only 40.49% of the variance in score
+# p value is very low which means sprint has a impact on scores
+# athletes with on slow level on an average have scores approximately 886 units less than those on fast sprint level 
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *shot* and *sprint*. Print the model's summary and answer the following questions:
+
+# 1. Did the addition of the new predictor *shot* improve the model accuracy? 
+# 2. *True/false* (explain in one line): the model suggests that there is a possible linear relationship between an athlete's score and shotput performance.
+# 3. For a 1 metre increase in shot put throw and with the same sprint performance, we can say with 95% confidence that the athlete's score will increase/decrease by an amount in the interval [?, ?].
+model = lm(score ~ shot + sprint, data = heptathlon)
+summary(model)
+
+# 1. addition of new predictor *shot* improved model accuracy as there is a increase in Multiple R squared value compared to previous model and decrease in residual standard error compared to previous model
+# 2. True, as the p value for shot is very less 
+
+conf_interval <- confint(model)["shot", ]
+conf_interval
+
+# 3. For a 1 meter increase in shot put throw and with the same sprint performance, we can say with 95% confidence that the athlete's score will increase by an amount in the interval [128.56, 370.77].
+```
+
+```{r}
+#  Using the model built above, extract the slope and intercept for estimating the *score* of *slow* and *fast* athletes. 
+coefficients <- coef(model)
+intercept_slow = coefficients["(Intercept)"] + coefficients["sprintslow"]
+intercept_fast = coefficients["(Intercept)"]
+
+slope_slow = coefficients["shot"] + coefficients["sprintslow"]
+slope_fast = coefficients["shot"]
+```
+
+```{r}
+# Complete the code below to build a linear model for approximating *score* as a function of *shot* and *sprint* using the training data. Predict the model performance by applying it to the test data.
+# Split the data into 80% train and 20% test parts
+set.seed(0)
+train_ind = sample(seq_len(nrow(heptathlon)), size = 0.8 * nrow(heptathlon))
+
+hDataTrain = heptathlon[train_ind, ]
+hDataTest = heptathlon[-train_ind, ]
+
+# Build linear regression model
+model = lm(score ~ shot + sprint, data = hDataTrain)
+
+# Predict on the test data
+predicted_scores = predict(model, newdata = hDataTest)
+
+# Print the true and predicted scores for the test data
+cat("True Scores:\n", hDataTest$score, "\n\n")
+cat("Predicted Scores:\n", predicted_scores, "\n\n")
+
+# Calculate the model error (mean-squared error for test data)
+mse = mean((hDataTest$score - predicted_scores)^2)
+cat("Mean-Squared Error on Test Data:", mse, "\n")
+
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *shot*, *javelin*, and *sprint*. Print the model's summary and answer the following questions:
+
+#1. Did the addition of the new predictor *javelin* improve the model accuracy? 
+#2. *True/false* (explain in one line): the model suggests that there is a possible linear relationship between an athlete's score and javelin performance.
+#3. For a 1 metre increase in shot put throw and with the same javelin and sprint performance, we can say with 95% confidence that the athlete's score will increase/decrease by an amount in the interval [?, ?].
+model =  lm(score ~ shot + javelin + sprint, data = heptathlon)
+summary(model)
+# 1. the addition of the new predictor *javelin* slightly decreased the adjusted r squared value which decreases the explanatory power of the model but still F statistic increased indicating still that the model is still statstically significant 
+# 2. False as p value is very large 
+
+conf_interval_shot <- confint(model)["shot", ]
+conf_interval_shot
+
+# 3. For a 1 metre increase in shot put throw and with the same javelin and sprint performance, we can say with 95% confidence that the athlete's score will increase by an amount in the interval [125.4599,373.6352].
+
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *highjump*, and *sprint*. Print the model's summary and answer the following questions:
+# 1. How accurate is this model?
+# 2. Considering a p-value of 10% as cutoff, are there any insignificant features?
+model = lm(score ~ highjump + sprint, data = heptathlon)
+summary(model)
+
+# 1. The model is acutely accurate as rSe indicates that  the model deviates approximately 241.9 units on average from the actual scores. Also the high values for R squared both adjusted and multiple indicates that the model explains about 80% of the variability in the scores and the low p- value indicates that the model is statistically significant
+
+# 2. No insignificant features as both the p values are very much less than 0.1
+
+```
+

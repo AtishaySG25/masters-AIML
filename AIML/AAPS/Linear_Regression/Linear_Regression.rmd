@@ -1,0 +1,103 @@
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+```{r}
+mouse.data <- data.frame(
+weight=c(0.9, 1.8, 2.4, 3.5, 3.9, 4.4, 5.1, 5.6, 6.3),
+size=c(1.4, 2.6, 1.0, 3.7, 5.5, 3.2, 3.0, 4.9, 6.3))
+mouse.data
+```
+```{r}
+plot(mouse.data$weight, mouse.data$size)
+```
+
+```{r}
+mouse.regression <- lm(size~ weight, data=mouse.data)
+```
+
+```{r}
+summary(mouse.regression)
+```
+```{r}
+abline(mouse.regression, col="blue")
+```
+
+Multiple Regression
+```{r}
+mouse.data <- data.frame(
+size= c(1.4, 2.6, 1.0, 3.7, 5.5, 3.2, 3.0, 4.9, 6.3),
+weight = c(0.9, 1.8, 2.4, 3.5, 3.9, 4.4, 5.1, 5.6, 6.3),
+tail = c(0.7, 1.3, 0.7, 2.0, 3.6, 3.0, 2.9, 3.9, 4.0))
+mouse.data
+```
+```{r}
+plot(mouse.data$weight, mouse.data$size)
+```
+```{r}
+simple.regression <- lm(size~ weight, data=mouse.data)
+```
+
+```{r}
+summary(simple.regression)
+```
+```{r}
+plot(mouse.data$weight, mouse.data$size, main = "Scatter Plot", xlab = "Weight", ylab = "Size")
+# Fit a simple linear regression model
+simple.regression <- lm(size ~ weight, data = mouse.data)
+
+# Add regression line to the plot
+abline(simple.regression, col = "red", lwd = 2)
+```
+```{r}
+plot(mouse.data)
+```
+
+```{r}
+multipe.regression = lm(size ~ weight + tail, data = mouse.data)
+summary(multipe.regression)
+```
+
+Design Matrices
+```{r}
+Type <- factor(c(
+rep("Control", times=4),
+rep("Mutant", times=4)))
+Weight <- c(2.4, 3.5, 4.4, 4.9, 1.7, 2.8, 3.2, 3.9)
+Size <- c(1.9, 3, 2.9, 3.7, 2.8, 3.3, 3.9, 4.8)
+model.matrix(~Type+Weight)
+```
+```{r}
+model = lm(Size ~ Type)
+summary(model)
+```
+Lab effects - batches
+```{r}
+Lab <- factor(c(
+rep("A", times=6),
+rep("B", times=6)))
+Type <- factor(c(
+rep("Control", times=3),
+rep("Mutant", times=3),
+rep("Control", times=3),
+rep("Mutant", times=3)))
+Expression <-c(
+1.7, 2, 2.2,
+3.1, 3.6, 3.9,
+0.9, 1.2, 1.9,
+1.8, 2.2, 2.9)
+```
+
+```{r}
+model.matrix(~Lab+Type)
+```
+
+```{r}
+plot(model)
+```
+
+```{r}
+batch.lm <- lm(Expression ~ Lab)
+summary(batch.lm)
+```
+

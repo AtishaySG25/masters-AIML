@@ -1,0 +1,77 @@
+---
+title: "Linear Regression Models, Segment 2, Topic 2: Interpretation of OLS Estimators, Accuracy of the Coefficient Estimates, Accuracy of the Model: R2 and Adjusted R2 Statistic"
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load California housing data
+file = 'Data/SaratogaHouses.csv'
+hData = read.csv(file, header = TRUE, stringsAsFactors = TRUE)
+str(hData)
+```
+
+```{r}
+# Build a linear regression model for price as a function of continuous predictors livingArea and age
+model = lm(data = hData, price ~ livingArea + age)
+summary(model)
+```
+
+```{r}
+# Show the levels of categorical predictor heating
+levels(hData$heating)
+```
+
+```{r}
+# Show the dummy encoding of categorical predictor heating
+contrasts(hData$heating)
+```
+
+```{r}
+# Build a linear regression model for price as a function of continuous predictor livingArea and categorical predictor heating
+model = lm(data = hData, price ~ livingArea + heating)
+summary(model)
+```
+
+
+```{r}
+# Extract the coefficient estimates
+beta0hat = summary(model)$coefficients['(Intercept)', 'Estimate']
+beta1hat = summary(model)$coefficients['livingArea', 'Estimate']
+beta2hat = summary(model)$coefficients['heatinghot air', 'Estimate']
+beta3hat = summary(model)$coefficients['heatinghot water/steam', 'Estimate']
+```
+
+```{r}
+# Find livingArea that are common to electric and hot air heated houses
+intersect(hData[hData$heating == 'electric', 'livingArea'],hData[hData$heating == 'hot air', 'livingArea'])
+```
+
+```{r}
+# Find which houses have livingArea equal to 1200
+which(hData$livingArea == 1200)
+# Get details of those houses
+hData[which(hData$livingArea == 1200), c('price', 'livingArea', 'heating')]
+```
+
+```{r}
+# Calculate the difference between predicted house price of a hot air heated house and an electric heated house with the same livingArea of 1200
+yhat = predict(model)
+yhat[[640]]-yhat[[1665]]
+# Compare with beta2hat
+beta2hat
+```
+
+```{r}
+# Build a linear model for predicting house price based on livingArea, landValue, bedrooms, rooms, heating and age
+model = lm(data = hData, price ~ livingArea + landValue + bedrooms + rooms + heating + age)
+summary(model)
+```
+
+

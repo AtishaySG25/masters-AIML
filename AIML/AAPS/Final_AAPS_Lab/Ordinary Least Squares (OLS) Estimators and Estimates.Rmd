@@ -1,0 +1,131 @@
+---
+title: "Linear Regression Models, Chapter 1, Topic 3: Ordinary Least Squares (OLS) Estimators and Estimates: Interpretations for Continuous and Categorical Predictors & Properties, Prediction Error
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load the mtcars dataset
+file = 'data/mtcars.csv'
+carData = read.csv(file, header = TRUE, row.names = 1, stringsAsFactors = FALSE)
+str(carData)
+```
+
+```{r}
+# Convert categorical columns to represent factor levels
+categorical_cols = c('cyl', 'vs', 'am', 'gear', 'carb')
+carData[categorical_cols] = lapply(carData[categorical_cols], as.factor)
+str(carData)
+```
+
+```{r}
+# Print the first five rows (or samples) in the data frame
+head(carData, 5)
+```
+
+
+```{r}
+# Fit a simple linear regression model for mpg as a function of hp
+model = lm(data = carData, mpg ~ hp)
+           
+# Print summary of model
+summary(model)
+```
+
+```{r}
+# Introduce a new column called heavy highlighting heavy and light cars
+carData = carData %>% mutate(heavy = ifelse(scale(wt) > 0.5 , 'yes', 'no'))
+carData['heavy'] = lapply(carData['heavy'], as.factor)
+
+# Print the mpg, we, heavy columns for all samples
+head(carData %>% select(mpg, wt, heavy), nrow(carData))
+```
+
+```{r}
+# Get details of the categorical column heavy
+contrasts(carData$heavy)
+```
+
+```{r}
+# Fit a simple linear regression model for mpg as a function of heavy
+model = lm(data = carData, mpg ~ heavy)
+           
+# Print summary of model
+summary(model)
+```
+
+```{r}
+# Average mpg of the not heavy cars
+mean(carData[carData$heavy == 'no', 'mpg'])
+
+# Average mpg of the heavy cars minus the average mpg of the not heavy cars
+mean(carData[carData$heavy == 'yes', 'mpg']) - mean(carData[carData$heavy == 'no', 'mpg'])
+```
+
+```{r}
+# Noisy sin function as a population model
+nsamples = 1000
+x = seq(0, 2*pi, length = nsamples)
+y = sin(x) + rnorm(length(x), mean = 0, sd = 0.1)
+popData = data.frame(x, y)
+colnames(popData) = c('X', 'Y')
+
+ggplot(data = popData, aes(x = X, y = Y)) +
+  geom_point(size = 1, color = 'blue') + 
+  geom_smooth(method = lm, formula = y ~ x, color = 'red', se = FALSE) +
+   labs(x = 'X', y = 'Y') + 
+   ggtitle("Population Data with Population Regression Line") +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 16, face = "bold"))
+```
+
+```{r}
+# Simple linear regression model and coefficient estimates
+model = lm(data = popData, Y~X)
+summary(model)
+beta0 = summary(model)$coefficients["(Intercept)", "Estimate"]
+beta1= summary(model)$coefficients["X", "Estimate"]
+print(beta0)
+print(beta1)
+```
+
+```{r}
+# Fit SLRM using multiple datasets
+ndatasets = 1000
+nsamples = 20
+beta_0_hat = numeric(ndatasets)
+beta_1_hat = numeric(ndatasets)
+for (j in seq(1, ndatasets)) {
+  idx = sample(nrow(popData), nsamples)
+  model = lm(data = popData[idx,], Y~X)
+  beta_0_hat[j] = summary(model)$coefficients["(Intercept)", "Estimate"]
+  beta_1_hat[j] = summary(model)$coefficients["X", "Estimate"]
+}
+beta_0_hat_avg = mean(beta_0_hat)
+beta_1_hat_avg = mean(beta_1_hat)
+print(beta_0_hat_avg)
+print(beta0)
+print(beta_1_hat_avg)
+print(beta1)
+```
+
+```{r}
+# Plot dataset with sample regression line
+ggplot(data = popData[idx, ], aes(x = X, y = Y)) +
+  geom_point(size = 1, color = 'blue') + 
+  geom_smooth(method = lm, formula = y ~ x, color = 'red', se = FALSE) +
+   labs(x = 'X', y = 'Y') + 
+   ggtitle("Sample Data with Sample Regression Line") +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 16, face = "bold"))
+```

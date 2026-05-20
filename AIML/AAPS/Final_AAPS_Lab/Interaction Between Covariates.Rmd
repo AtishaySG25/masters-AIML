@@ -1,0 +1,95 @@
+---
+title: "Linear Regression Models, Segment 2, Topic 3: Feature Engineering: Centering, Standardization, & Logarithmic Transformation, Regularization: Ridge & Lasso
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load California housing data
+file = 'Data/SaratogaHouses.csv'
+hData = read.csv(file, header = TRUE, stringsAsFactors = TRUE)
+str(hData)
+```
+
+```{r}
+# Build a linear regression model for price as a function of all predictors
+model = lm(data = hData, price ~ .)
+summary(model)
+```
+
+```{r}
+# Calculate correlation matrix for continuous predictors
+ind_continuous = sapply(hData, is.numeric)
+round(cor(hData[ind_continuous]), 2)
+```
+
+```{r}
+# Build a linear regression model for price as a function of livingArea and rooms
+model = lm(data = hData, price ~ livingArea + rooms)
+summary(model)
+```
+
+```{r}
+# Build a linear regression model for price as a function of livingArea and rooms with an interaction between them
+model = lm(data = hData, price ~ livingArea + rooms +  livingArea:rooms)
+summary(model)
+```
+
+```{r}
+# Build a linear regression model for price as a function of heating and air-conditioning
+model = lm(data = hData, price ~ heating + centralAir)
+summary(model)
+```
+
+```{r}
+# Build a linear regression model for price as a function of heating and air-conditioning with an interaction between them
+model = lm(data = hData, price ~ heating + centralAir + heating:centralAir)
+summary(model)
+```
+
+```{r}
+# For electric-heated houses, calculate the difference between the average price of air-conditioned and not air-conditioned houses; this is equal to beta_3_hat
+mean(hData[hData$heating == 'electric' & hData$centralAir == 'Yes', 'price'])-mean(hData[hData$heating == 'electric' & hData$centralAir == 'No', 'price'])
+# beta_3_hat
+coef(model)[4]
+```
+
+```{r}
+# For hot air-heated houses, calculate the difference between the average price of air-conditioned and not air-conditioned houses; this is equal to beta_3_hat+beta_4_hat
+mean(hData[hData$heating == 'hot air' & hData$centralAir == 'Yes', 'price'])-mean(hData[hData$heating == 'hot air' & hData$centralAir == 'No', 'price'])
+# beta_3_hat + beta_4_hat
+coef(model)[4] + coef(model)[5]
+```
+
+```{r}
+# Build a linear regression model for price as a function of livingArea and new
+model = lm(data = hData, price ~ livingArea + newConstruction)
+summary(model)
+```
+
+```{r}
+# Build a linear regression model for price as a function of livingArea and newConstruction with interaction between them
+model = lm(data = hData, price ~ livingArea + newConstruction + livingArea:newConstruction)
+summary(model)
+```
+
+```{r}
+# Scatter plot of price vs. livingArea color coded according to the predictor newConstruction
+ggplot(data = hData) +
+  geom_point(aes(x = livingArea, y = price, color = newConstruction), size = 1) +
+     geom_abline(intercept = coef(model)['(Intercept)'], slope = coef(model)['livingArea'], color = 'orange')+ 
+   geom_abline(intercept = coef(model)['(Intercept)'] + coef(model)['newConstructionYes'], slope = coef(model)['livingArea']+coef(model)['livingArea:newConstructionYes'], color = 'cyan')+ 
+   labs(x = 'Living Area (Sq. ft)', y = 'Price ($)') + 
+   ggtitle("Interaction effect between livingArea and newConstruction") +
+   theme(axis.text = element_text(size = 8),
+   axis.text.x = element_text(size = 8),
+   axis.text.y = element_text(size = 8),
+   axis.title = element_text(size = 8, face = "bold"))
+```
+

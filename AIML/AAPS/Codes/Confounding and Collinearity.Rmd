@@ -1,0 +1,83 @@
+---
+title: "Linear Regression Models, Segment 3, Topic 1: Confounding and Collinearity: Correlation Matrix & Variance Inflation Factor (VIF)"
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load California housing data
+file = 'Data/SaratogaHouses.csv'
+hData = read.csv(file, header = TRUE, stringsAsFactors = TRUE)
+str(hData)
+```
+
+```{r}
+# Build a linear regression model for price as a function of continuous predictor livingArea (in square feet)
+model = lm(data = hData, price ~ livingArea)
+summary(model)
+```
+
+```{r}
+# Build a linear regression model for price as a function of continuous predictors livingArea (in square feet) and livingAreaNew (in square metre)
+hData$livingAreaNew = 0.092903*hData$livingArea
+model = lm(data = hData, price ~ livingArea + livingAreaNew)
+summary(model)
+```
+
+```{r}
+# Calculate correlation matrix for continuous predictors livingArea, lotSize, age, landValue, bedrooms, rooms  
+round(cor(hData[c('livingArea', 'lotSize', 'age', 'landValue', 'bedrooms', 'rooms')]), 2)
+```
+
+```{r}
+# Build a linear regression model for price as a function of continuous predictors livingArea, lotSize, age, landValue, bedrooms, rooms 
+model_full = lm(data = hData, price ~ livingArea + lotSize + age + landValue + bedrooms + rooms)
+summary(model_full)
+```
+
+```{r}
+# Build a linear regression model for price as a function of continuous predictors livingArea, lotSize, age, landValue, bedrooms (rooms, highly correlated with livingArea, is not included) 
+model = lm(data = hData, price ~ livingArea + lotSize + age + landValue + bedrooms)
+summary(model)
+```
+
+```{r}
+# Build a regression model using each one of the following predictors individually: livingArea, lotSize, age, landValue, bedrooms, rooms
+
+#model = lm(data = hData, price ~ livingArea)
+#summary(model)
+
+#model = lm(data = hData, price ~ lotSize)
+#summary(model)
+
+#model = lm(data = hData, price ~ age)
+#summary(model)
+
+#model = lm(data = hData, price ~ landValue)
+#summary(model)
+
+#model = lm(data = hData, price ~ bedrooms)
+#summary(model)
+
+#model = lm(data = hData, price ~ rooms)
+#summary(model)
+```
+
+```{r}
+# Build a model by regressing livingArea on the other predictors lotSize, age, landValue, bedrooms, and rooms
+model = lm(data = hData, livingArea ~ lotSize + age + landValue + bedrooms + rooms)
+summary(model)
+```
+
+```{r}
+# Calculate VIF of the predictors using the caret package
+library(car)
+car::vif(model)
+```
+

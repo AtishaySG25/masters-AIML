@@ -1,0 +1,221 @@
+---
+title: "Lab 1 BDA Even Semester 2024"
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(HSAUR)
+library(ggcorrplot)
+```
+
+```{r}
+# Load California housing data
+file = 'Data/SaratogaHouses.csv'
+hData = read.csv(file, header = TRUE, stringsAsFactors = FALSE)
+hData = hData %>% select(price, livingArea, heating)
+str(hData)
+```
+
+
+```{r}
+# Convert heating column to factor type
+hData['heating'] = lapply(hData['heating'], factor)
+str(hData)
+```
+
+
+```{r}
+# Make a scatter plot between price and livingArea
+p = ggplot(data = hData) +
+  geom_point(aes(x = livingArea, y = price)) +
+  labs(x = 'Living Area (square feet)', y = 'Price (US dollars)')  +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 14, face = "bold")) 
+p
+```
+
+```{r}
+# Make a scatter plot between price and heating
+p = ggplot(data = hData) +
+  geom_boxplot(aes(x = heating, y = price)) +
+  labs(x = 'Heating', y = 'Price (US dollars)')  +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 14, face = "bold")) 
+p
+```
+
+```{r}
+# Make a scatter plot between price and heating
+p = ggplot(data = hData) +
+  geom_bar(aes(x = heating)) +
+  labs(x = 'Heating')  +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 14, face = "bold")) 
+p
+```
+
+```{r}
+# Build a linear model to predict price as a function of livingArea
+model = lm(data = hData, price ~ livingArea)
+summary(model)
+```
+
+```{r}
+# Build a linear model to predict price as a function of heating
+model = lm(data = hData, price ~ heating)
+summary(model)
+```
+
+```{r}
+# Build a linear model to predict price as a function of livingArea and heating
+model1 = lm(data = hData, price ~ livingArea + heating)
+summary(model1)
+```
+
+
+```{r}
+# Build a linear model to predict price as a function of heating
+model1 = lm()
+summary(model1)
+```
+
+```{r}
+# Predict price for a new livingArea
+hDataNew = data.frame(125000, 1200)
+colnames(hDataNew) = c()
+predict()
+```
+
+```{r}
+# Split the dataframe into train and test parts
+ind = sample(1:nrow(hData), size =, replace = )
+hData_train = 
+hData_test = 
+```
+
+```{r}
+# Build a linear model to predict price as a function 
+# of livingArea using the train part of the dataset
+model = lm()
+summary(model)
+```
+
+```{r}
+# Apply the model to the test part of the dataset
+hData_test['predicted_price'] = predict()
+head(hData_test)
+```
+
+```{r}
+# Plot of the true and predicted prices for the test dataset
+p = ggplot() +
+  geom_point() +
+  geom_line(aes(x = livingArea, y = predicted_price), color = 'red')  +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 14, face = "bold")) 
+p
+```
+
+```{r}
+# Test error of the model (Out-of-training-sample error estimate) = RMSE on the test dataset 
+
+```
+
+```{r}
+# Load the heptathlon dataset
+data(heptathlon)
+str(heptathlon)
+```
+
+```{r}
+# Introduce a new column called sprint highlighting slow and fast sprinters
+heptathlon = heptathlon %>% mutate()
+str(heptathlon)
+```
+
+```{r}
+# Change sprint column to factor type
+heptathlon['sprint'] = 
+str(heptathlon)
+```
+
+```{r}
+# Make a scatter plot between *run200m* (x-axis) and *longjump* (y-axis). What do you observe from this plot?
+p1 = ggplot() +
+  geom_point()+   
+  labs(x = 'run200m (seconds)', y = 'longjump (m)') +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 14, face = "bold"))     
+p1
+```
+
+```{r}
+# Correlation between all pairs of continuous predictors
+cor_matrix = cor()
+ggcorrplot()
+```
+
+
+```{r}
+# Make a scatter plot between *run200m* (x-axis) and *longjump* (y-axis) now with the data points color-coded using *sprint*. What do you observe from this plot?
+p2 = ggplot() +
+  geom_point()+   
+  labs(x = 'run200m (seconds)', y = 'longjump (m)') +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 14, face = "bold"))     
+p2
+```
+
+```{r}
+# Calculate Pearson's correlation between *run200m* and *longjump*. What do you observe?
+cor()
+```
+
+```{r}
+# How many levels does the categorical variable *sprint* have? What is the reference level? 
+
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *sprint*. Print the model's summary. How accurate is the model? How do the slow athletes' scores compare to the fast ones?
+model = lm()
+summary(model)
+mean_slow = mean(heptathlon[])
+mean_fast = mean(heptathlon[])
+mean_fast
+mean_slow-mean_fast
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *shot* and *sprint*. Print the model's summary and answer the following questions:
+
+# 1. Did the addition of the new predictor *shot* improve the model accuracy? 
+# 2. *True/false* (explain in one line): the model suggests that there is a possible linear relationship between an athlete's score and shotput performance.
+# 3. For a 1 metre increase in shot put throw and with the same sprint performance, we can say with 95% confidence that the athlete's score will increase/decrease by an amount in the interval [?, ?].
+model = lm()
+summary(model)
+```
+
+
+
+
+
+
+
+

@@ -1,0 +1,63 @@
+---
+title: "Linear Regression Models, Segment 2, Topic 3: Feature Engineering: Centering, Standardization, & Logarithmic Transformation, Regularization: Ridge & Lasso"
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load California housing data
+file = 'Data/SaratogaHouses.csv'
+hData = read.csv(file, header = TRUE, stringsAsFactors = TRUE)
+str(hData)
+```
+
+```{r}
+# Build a linear regression model for price as a function of continuous predictors livingArea and age
+model = lm(data = hData, price ~ livingArea + age)
+summary(model)
+```
+
+```{r}
+# Build a linear regression model for price as a function of mean-centered continuous predictors livingArea and age
+hData$livingAreaMC = hData$livingArea - mean(hData$livingArea)
+hData$ageMC = hData$age-mean(hData$age)
+model = lm(data = hData, price ~ livingAreaMC + ageMC)
+summary(model)
+```
+
+```{r}
+# Predict house price for zero input value of predictors
+hData_test = data.frame(livingAreaMC = c(0), ageMC = c(0))
+predict(model, hData_test)
+# Average livingArea and age
+mean(hData$livingArea)
+mean(hData$age)
+```
+
+
+```{r}
+# Build a linear regression model for price as a function of continuous predictors livingArea and lotSize
+model = lm(data = hData, price ~ livingArea + lotSize)
+summary(model)
+```
+
+```{r}
+# Build a linear regression model for price as a function of standardized continuous predictors livingArea and age
+hData$livingAreaSD = scale(hData$livingArea)
+hData$lotSizeSD = scale(hData$lotSize)
+model = lm(data = hData, price ~ livingAreaSD + lotSizeSD)
+summary(model)
+```
+
+```{r}
+# Build a linear regression model for log(price) as a function of continuous predictors livingArea and age
+hData$logprice = log(hData$price)
+model = lm(data = hData, logprice ~ livingArea + age)
+summary(model)
+```

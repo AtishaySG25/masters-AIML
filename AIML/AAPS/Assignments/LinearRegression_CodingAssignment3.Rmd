@@ -1,0 +1,179 @@
+---
+title: "Linear Regression Coding Assignment-3"
+editor_options:
+  chunk_output_type: console+
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+library(ggplot2)
+library(dplyr)
+library(reshape)
+```
+
+```{r}
+# Load the diabetes dataset: 
+# 10 predictors which are age, gender (1-female, 2-male), body-mass index, average blood pressure, and six blood serum measurements and 1 response variable which is a quantitative measure of disease progression one year after baseline)
+df = read.csv('D:/AAPS/Codes/Data/diabetes.csv', header = TRUE, stringsAsFactors = FALSE)
+str(df)
+```
+
+```{r}
+# Create a new feature called BMILEVEL using the BMI column and the following rules: BMI < 18.5 is underweight, 18.5 <= BMI <= 24.9 is healthy, 25 <= BMI <= 29.9 is overweight, BMI >= 30 is unhealthy
+df = df %>% mutate(BMILEVEL = case_when(BMI < 18.5 ~ 'underweight', BMI >= 18.5 & BMI <= 24.9  ~ 'healthy', BMI <= 29.9 ~ 'overweight', BMI >= 30 ~ 'unhealthy'))
+str(df)
+```
+
+
+```{r}
+# Convert 'GENDER' and 'BMILEVEL' columns to factors
+categorical_cols = c('GENDER', 'BMILEVEL')
+df[categorical_cols] = lapply(df[categorical_cols], as.factor)
+str(df)
+```
+
+```{r}
+# Create a list of continuous columns
+continuous_cols = setdiff(colnames(df), categorical_cols)
+continuous_cols
+```
+
+```{r}
+# How many levels does the categorical variable *BMILEVEL* have? What is the reference level? 
+# Convert the vector to a factor
+
+contrasts(df$BMILEVEL)
+```
+Use healthy as the reference level
+
+```{r}
+# Fit a linear model for predicting disease progression using BMILEVEL. Print the model's summary.
+# How accurate is the model?
+# Which level in BMILEVEL is most likely to not have a linear relationship with disease progression? What is the reason? BMILEVELunderweight because the associated p value is about 82% which is much higher 
+# How worse is the disease progression in unhealthy people compared to the healthy ones?
+# How worse is the disease progression in unhealthy people compared to the overweight ones?
+# Write down the individual model for each level in BMILEVEL
+
+model = lm(data = df, Y ~ BMI)
+summary(model)
+
+```
+
+>The non-significant p-value suggests that there is not enough evidence to conclude that the "underweight" category has a linear relationship with disease progression.
+
+>Based on the coefficient values the disease progression is significantly worse in unhealthy people compared to healthy ones.
+
+>The difference in coefficients of unhealthy people compared to the overweight ones indicates that disease progression is significantly worse in unhealthy people compared to overweight ones.
+
+>For "healthy" individuals:
+Disease Progression=109.376
+For "overweight" individuals:
+Disease Progression=109.376+55.656
+For "underweight" individuals:
+Disease Progression=109.376−10.376
+For "unhealthy" individuals:
+Disease Progression=109.376+103.967
+
+```{r}
+# Fit a linear model for predicting disease progression using BMILEVEL and the blood serum measurements. 
+# From the model summary, explain how you will find out which blood serum measurements are most likely to have a linear relationship with disease progression.
+# Fit a model using BMILEVEL and the blood serum measurements identified in the previous question and compare its accuracy with the model fit using BMILEVEL and all blood serum measurements.
+
+model = lm(data = df, Y ~ BMILEVEL + S1 + S2 + S3 + S4 + S5 + S6)
+summary(model)
+
+predictions = predict(model, newdata = df)
+accuracy = cor(df$Y, predictions)
+accuracy
+
+#Model for only S1, S5 and S63
+better_model = lm(data = df, Y ~ BMILEVEL + S1 +S5 +S6)
+summary(better_model)
+
+predictions = predict(better_model, newdata = df)
+accuracy = cor(df$Y, predictions)
+accuracy
+```
+
+>BMILEVEL, S1, S5, and S6 have small p-values, suggesting that they are statistically significant predictors of disease progression.
+
+>S2, S3, S4 have p-values above 0.05, indicating that their relationship with disease progression is not statistically significant at the 0.05 significance level.
+
+>Both models seem to be quite similar in terms of accuracy. The simpler model with BMILEVEL, S1, S5, and S6 might be preferable if it gives a comparable fit.
+
+```{r}
+# Fit a linear model for predicting disease progression using BMI, age, BP, and gender. How accurate is the model? 
+# According to the model, which gender has a worse disease progression? Explain why.
+# For the same age, BP, and gender, decreasing BMI by 1 unit causes what change in the disease progression?
+# For the same age and BP, which gender benefits better w.r.t. disease progressions by decreasing BMI by 1 unit. Explain. 
+
+model = lm(data = df, Y ~ BMI + AGE + BP + GENDER)
+summary(model)
+
+
+predictions = predict(model, newdata = df)
+accuracy = cor(df$Y, predictions)
+accuracy
+```
+
+```{r}
+# Extract the coefficients from the model
+coefficients <- coef(model)
+
+# Find the coefficient for BMI
+coeff_bmi <- coefficients["BMI"]
+
+# Interpretation: A 1-unit decrease in BMI is associated with a change in disease progression
+# equal to the coefficient for BMI, while holding age, BP, and gender constant.
+change_in_disease_progression <- coeff_bmi
+change_in_disease_progression
+```
+
+>Decreasing BMI by 1 unit causes 8.48 units change in the disease progression 
+
+
+```{r}
+# Fit a linear model for predicting disease progression using BMI, age, BP, gender and interaction between BMI and gender. Is this model more accurate than the model without interaction between BMI and gender?
+model = lm(data = df, Y ~ BMI + AGE + BP + GENDER + BMI:GENDER)
+summary(model)
+
+predictions = predict(model, newdata = df)
+accuracy = cor(df$Y, predictions)
+accuracy
+```
+
+```{r}
+#model without interaction between BMI and Gender
+model = lm(data = df, Y ~ BMI + AGE + BP + GENDER)
+summary(model)
+
+predictions = predict(model, newdata = df)
+accuracy = cor(df$Y, predictions)
+accuracy
+```
+There is significant change in the accuracy for a linear model without interaction between BMI and Gender
+
+
+```{r}
+#Build a model with BMI and Gender as the only predictors
+categorical_cols = c('GENDER', 'BMILEVEL')
+df[categorical_cols] = lapply(df[categorical_cols], as.factor)
+str(df)
+model = lm(data = df, Y ~ BMI + GENDER)
+summary(model)
+
+# Scatter plot using ggplot
+ggplot(df, aes(x = BMI, y = Y, color = GENDER, group = GENDER)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, aes(group = GENDER)) +  
+  labs(title = "Scatter Plot of Disease Progression vs. BMI by Gender",
+       x = "BMI",
+       y = "Disease Progression",
+       color = "Gender") 
+
+```
+
+
+
+

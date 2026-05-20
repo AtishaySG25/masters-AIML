@@ -1,0 +1,139 @@
+---
+title: "Linear Regression Models, Chapter 1, Topic 4: Accuracy of the Coefficient Estimates: Standard Errors, Confidence Intervals, & Hypothesis Tests
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Noisy sin function as a population model
+nsamples = 1000
+x = seq(0, 2*pi, length = nsamples)
+y = sin(x) + rnorm(length(x), mean = 0, sd = 0.1)
+popData = data.frame(x, y)
+colnames(popData) = c('X', 'Y')
+
+ggplot(data = popData, aes(x = X, y = Y)) +
+  geom_point(size = 1, color = 'blue') + 
+  geom_smooth(method = lm, formula = y ~ x, color = 'red', se = FALSE) +
+   labs(x = 'X', y = 'Y') + 
+   ggtitle("Population Data with Population Regression Line") +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 16, face = "bold"))
+```
+
+```{r}
+# Simple linear regression model and coefficient estimates
+model = lm(data = popData, Y~X)
+summary(model)
+beta0 = summary(model)$coefficients["(Intercept)", "Estimate"]
+beta1= summary(model)$coefficients["X", "Estimate"]
+print(beta0)
+print(beta1)
+```
+
+```{r}
+# Fit SLRM using multiple datasets
+ndatasets = 1000
+nsamples = 100
+beta_0_hat = numeric(ndatasets)
+beta_1_hat = numeric(ndatasets)
+serrorbeta_0  = numeric(ndatasets)
+serrorbeta_1  = numeric(ndatasets)
+for (j in seq(1, ndatasets)) {
+  idx = sample(nrow(popData), nsamples)
+  model = lm(data = popData[idx,], Y~X)
+  beta_0_hat[j] = summary(model)$coefficients["(Intercept)", "Estimate"]
+  beta_1_hat[j] = summary(model)$coefficients["X", "Estimate"]
+  serrorbeta_0[j] = summary(model)$coefficients["(Intercept)", "Std. Error"]
+  serrorbeta_1[j] = summary(model)$coefficients["X", "Std. Error"]
+}
+```
+
+```{r}
+# Plot histogram of estimates from different datasets
+dfbetaHat = as.data.frame(cbind(beta_0_hat, beta_1_hat, serrorbeta_0, serrorbeta_1))
+colnames(dfbetaHat) = c('beta0hat', 'beta1hat', 'serrorbeta0hat', 'serrorbeta1hat')
+beta = beta_0_hat
+mu = mean(beta)
+sigma = sd(beta)
+delta = 0.1 # bin width for histogram
+ggplot(data = dfbetaHat) +
+  geom_histogram(aes(x = beta0hat, y = ..count..),
+  breaks = seq(mu-4*sigma, mu+4*sigma, by = delta),
+  colour = 'black', fill = 'steelblue', alpha = 0.4) +
+  labs(x = 'Beta0 Estimates', y = 'Frequency')+
+  ggtitle('Histogram of Intercept Estimates') +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 12),
+   axis.text.y = element_text(size = 12),
+   axis.title = element_text(size = 14, face = "bold"))
+```
+
+```{r}
+# For beta0hat, calculate the 95% confidence interval estimates generated from# each dataset. After that, find the percentage of the intervals generated from all datasets that actually contain the true beta0 value.
+# True beta0 value
+print(beta0)
+betaHat0_CI95 = cbind(dfbetaHat$beta0hat-2*dfbetaHat$serrorbeta0hat,
+                      dfbetaHat$beta0hat+2*dfbetaHat$serrorbeta0hat)
+#print(betaHat0_CI95) # confidence 95% confidence interval estimates
+checkCI = function(data){
+  return(between(beta0, data[1], data[2]))
+}
+mean(apply(betaHat0_CI95, 1, checkCI))*100 
+```
+
+```{r}
+# Load the mtcars dataset
+file = 'data/mtcars.csv'
+carData = read.csv(file, header = TRUE, row.names = 1, stringsAsFactors = FALSE)
+str(carData)
+```
+
+```{r}
+# Convert categorical columns to represent factor levels
+categorical_cols = c('cyl', 'vs', 'am', 'gear', 'carb')
+carData[categorical_cols] = lapply(carData[categorical_cols], as.factor)
+str(carData)
+```
+
+```{r}
+# Print the first five rows (or samples) in the data frame
+head(carData, 5)
+```
+
+
+```{r}
+# Fit a simple linear regression model for mpg as a function of hp
+model = lm(data = carData, mpg ~ hp)
+           
+# Print summary of model
+summary(model)
+```
+
+```{r}
+# Standard errors of the estimates
+# beta0hat standard error
+print(summary(model)$coefficients['(Intercept)', 'Std. Error'])
+# beta1hat standard error
+print(summary(model)$coefficients['hp', 'Std. Error'])
+```
+
+```{r}
+# 95% confidence intervals
+beta0hat = summary(model)$coefficients['(Intercept)', 'Estimate']
+beta1hat = summary(model)$coefficients['hp', 'Estimate']
+serrorbeta0hat = summary(model)$coefficients['(Intercept)', 'Std. Error']
+serrorbeta1hat = summary(model)$coefficients['hp', 'Std. Error']
+# 95% CI for Beta0hat
+cbind(beta0hat-1.96*serrorbeta0hat, beta0hat+1.96*serrorbeta0hat)
+# 95% CI for Beta1hat
+cbind(beta1hat-1.96*serrorbeta1hat, beta1hat+1.96*serrorbeta1hat)
+```

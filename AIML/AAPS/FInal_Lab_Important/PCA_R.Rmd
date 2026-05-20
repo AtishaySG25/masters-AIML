@@ -1,0 +1,386 @@
+---
+title: Principal Component Analysis (PCA)
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+## Load data - refer to http://openmv.net/info/food-texture for data description
+file = 'http://openmv.net/file/food-texture.csv'
+foodData = read.csv(file, header = TRUE, row.names = 1)
+```
+
+```{r}
+## Print structure of data frame
+str(foodData)
+```
+
+```{r}
+## Print first 5 samples of data frame
+head(foodData, n = 5)
+```
+
+```{r}
+## Modify data frame
+# Rename Oil column to OilPercentage
+foodData = foodData %>% rename(OilPercentage = Oil)
+
+# Modify crispy column to reflect high (0) and low (1) crispness
+foodData = foodData %>% mutate(Crispy = ifelse(Crispy > 11, 'high', 'low'))
+
+# Change Crispy column to factor type
+foodData['Crispy'] = lapply(foodData['Crispy'], factor)
+```
+
+```{r}
+## Print structure of modified data frame
+str(foodData)
+```
+
+```{r}
+## Print first 5 samples of modified data frame
+head(foodData, n = 5)
+```
+
+```{r}
+## Select data frame without Crispy column
+fData = foodData %>% select(-c(Crispy))
+```
+
+```{r}
+## Understand the effect of mean-centering a feature (Density in this case)
+fData$Density_mc = fData$Density - mean(fData$Density)
+p1 = ggplot(data = fData) +
+  geom_point(aes(x = c(1:nrow(fData)), y = Density), size = 1, color = 'red') +
+  geom_point(aes(x = c(1:nrow(fData)), y = Density_mc), size = 1, color = 'blue') +
+  geom_hline(yintercept = 0) +
+  labs(x = 'Sample #', y = 'Density') +
+  ggtitle('Component plot') +
+  theme(plot.title = element_text(size = 16, hjust = 0.5),
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+p1
+```
+
+```{r}
+## Understand the effect of mean-centering a feature (OilPercentage in this case)
+fData$OilPercentage_mc = fData$OilPercentage - mean(fData$OilPercentage)
+p1 = ggplot(data = fData) +
+  geom_point(aes(x = c(1:nrow(fData)), y = Density_mc/sd(Density)), size = 1, color = 'red') +
+  geom_point(aes(x = c(1:nrow(fData)), y = OilPercentage_mc/sd(OilPercentage)), size = 1, color = 'blue') +
+  geom_hline(yintercept = 0) +
+  labs(x = 'Sample #', y = 'Density') +
+  ggtitle('Component plot') +
+  theme(plot.title = element_text(size = 16, hjust = 0.5),
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+p1
+```
+
+```{r}
+## The mean-centered Density and OilPercentage values
+fData %>% select(Density_mc, OilPercentage_mc)
+```
+
+```{r}
+## Understand the effect of Standardizing features (Density and OilPercentage in this case)
+p1 = ggplot(data = fData) +
+  geom_line(aes(x = c(1:nrow(fData)), y = Density_mc/sd(Density)), linewidth = 1, color = 'red') +
+  geom_line(aes(x = c(1:nrow(fData)), y = OilPercentage_mc/sd(OilPercentage)), linewidth = 1, color = 'blue') +
+  geom_hline(yintercept = 0) +
+  labs(x = 'Sample #', y = 'Density') +
+  ggtitle('Component plot') +
+  theme(plot.title = element_text(size = 16, hjust = 0.5),
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+p1
+```
+
+```{r}
+## Understand the relationship between two continuous features
+## (Density and OilPercentage in this case)
+p1 = ggplot(data = fData) +
+  geom_point(aes(x = Density, y = OilPercentage), size = 1, color = 'red') +
+  labs(x = 'Density', y = 'Oil Percentage') +
+  ggtitle('Scatter plot') +
+  theme(plot.title = element_text(size = 16, hjust = 0.5),
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+p1
+```
+
+```{r}
+## Understand the relationship between two continuous features that are standardized
+## (Density and OilPercentage in this case)
+p1 = ggplot(data = fData) +
+  geom_point(aes(x = Density_mc/sd(Density), y = OilPercentage_mc/sd(OilPercentage)), size = 1, color = 'red') +
+  labs(x = 'Standardized Density', y = 'Standardized Oil Percentage') +
+  ggtitle('Scatter plot') +
+  theme(plot.title = element_text(size = 16, hjust = 0.5),
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
+p1
+```
+
+```{r}
+## Deselect the mean-centered features so that we go back to original 4 features
+fData = fData %>% select(-c(Density_mc, OilPercentage_mc))
+str(fData)
+```
+
+```{r}
+# Calculate the covariance matrix for all features
+# or equivalently, calculate the covariance matrix of the data
+cov(fData)
+```
+
+```{r}
+## What is inside the covariance matrix?
+# Calculate the variance of Density
+var(fData$Density)
+(1/(nrow(fData)-1))*sum((fData$Density - mean(fData$Density))^2)
+print('--------')
+# Calculate the covariance between Density and OilPercentage
+cov(fData$Density, fData$OilPercentage)
+(1/(nrow(fData)-1))*sum((fData$Density-mean(fData$Density)) * (fData$OilPercentage-mean(fData$OilPercentage)))
+print('--------')
+# Calculate the correlation between Density and OilPercentage (Pearson's correlation coefficient)
+cov((fData$Density-mean(fData$Density))/sd(fData$Density), (fData$OilPercentage-mean(fData$OilPercentage))/sd(fData$OilPercentage))
+cor(fData$Density, fData$OilPercentage)
+```
+
+```{r}
+## Calculate the correlation matrix for all features
+cor(fData)
+```
+
+```{r}
+# Calculate the covariance matrix using the samples (to be discussed later)
+n = nrow(fData)
+p = ncol(fData)
+S = matrix(0, p, p)
+X = as.matrix(fData)
+mu = apply(X, 2, mean) # average sample
+str(mu)
+for (i in c(1:n)){
+  S = S + (X[i, ]-mu) %*% t(X[i, ]-mu)
+}
+S = (1/(n-1))*S
+print(S)
+```
+
+```{r}
+## Select only two continuous features (Density and OilPercentage in this case)
+fData2 = fData %>% select(c(Density, OilPercentage))
+head(fData2)
+```
+
+```{r}
+## Calculate covariance and correlation matrices for the data
+## with two continuous features
+cov(fData2)
+cor(fData2)
+```
+
+```{r}
+## Calculate the eigenvectors of the covariance and correlation matrices
+e = eigen(cov(fData2))
+e$vectors
+print('----')
+e = eigen(cor(fData2))
+e$vectors
+```
+
+```{r}
+## Note that the eigenvectors of both covariance and correlation
+## matrices have unit magnitude and that they are pairwise perpendicular
+e = eigen(cov(fData2))
+apply((e$vectors)^2, 2, sum)
+e$vectors[, 1] %*% e$vectors[, 2] # zero dot-product implies perpendicular
+
+e = eigen(cor(fData2))
+apply((e$vectors)^2, 2, sum)
+e$vectors[, 1] %*% e$vectors[, 2] # zero dot-product implies perpendicular
+```
+
+```{r}
+# Calculate sample covariance matrix
+S = cov(fData)
+
+# Calculate eigenvectors and eigenvalues of sample covariance matrix
+e = eigen(S)
+
+# Eigenvectors of the sample covariance matrix
+V = e$vectors
+
+# Eigenvalues of the sample covariance matrix
+lambda = e$values
+
+#Print the eigenvalues
+print(lambda)
+print('------')
+# Print the eigenvectors or principal directions
+colnames(fData)
+print(V)
+```
+
+```{r}
+# Do the eigenvectors have unit magnitude?
+apply(V, 2, norm, type = '2')
+```
+
+```{r}
+# The principal directions (eigenvectors) are mutually perpendicular (or orthogonal)
+V[, 1] %*% V[, 2]
+V[, 1] %*% V[, 3]
+V[, 1] %*% V[, 4]
+V[, 2] %*% V[, 3]
+V[, 2] %*% V[, 4]
+V[, 3] %*% V[, 4]
+```
+
+```{r}
+## Extract data matrix
+X = as.matrix(fData)
+```
+
+```{r}
+## PC1 loadings are components of the 1st eigen vector (1st principal diretion)
+V[, 1]
+```
+
+```{r}
+## Project 1st sample onto the direction of the 1st eigenvector.
+## The resulting project value is called the PC1 score of the 1st sample
+X[1, ] %*% V[, 1]
+```
+
+```{r}
+## Project all samples onto the direction of the 1st eigenvector.
+## In other words, we are calculating the PC1 score of all samples
+## in one shot
+X %*% V[, 1]
+```
+
+```{r}
+## Variance of the projections onto the 1st eigenvector
+var(X %*% V[, 1])
+var(X %*% V[, 2])
+var(X %*% V[, 3])
+var(X %*% V[, 4])
+```
+
+```{r}
+## Variance of the projections onto the 1st eigenvector
+var(X %*% V[, 1])
+
+# 1st eigenvalue
+lambda[1]
+```
+
+```{r}
+## Project all samples onto the directions of all eigenvectors.
+## In other words, we calculate the PC1, PC2, PC3, PC4 scores of all
+## samples in one shot.
+X %*% V # this is a matrix-matrix product of a 50x4-matrix and a 4x4-matrix
+
+# Variance along all PC directions
+lambda
+apply(X %*% V, 2, var)
+
+print('--------')
+
+# Variance for each feature
+apply(fData, 2 , var)
+print('------')
+
+# Total variance in the data is equal to the sum of the variances
+# explained by each principal component
+sum(apply(fData, 2 , var))
+sum(lambda)
+print('------')
+```
+
+----
+
+Using the PCA results, answer the following questions:
+
+
+1.   Which principal component assigns the greatest weight (in magnitude) to Density?
+2.   Which principal component assigns the greatest weight (in magnitude) to OilPercentage?
+3.    True/false: the 2nd principal component score for a sample assigns a maximum weight to its Hardness.
+
+----
+
+```{r}
+print(V)
+```
+
+```{r}
+## How many minimum principal components are needed to explain more than
+## 95% of the variance in the data?
+lambda
+explained_var = sum(lambda)
+precentage_explained_var = (lambda / explained_var) * 100
+print(precentage_explained_var)
+cumsum(precentage_explained_var)
+```
+
+```{r}
+## Note that the results above were derived without standardizing
+## the data matrix, which is an essential first step if the features
+## have units that are several orders of magnitude different.
+
+# Scale the data matrix and repeat the results
+X = scale(fData)
+S = cov(X) # covariance of scaled data matrix is the same as the correlation matrix
+e = eigen(S) # calculate eigenvectors an eigenvalues
+V = e$vectors
+lambda = e$values
+colnames(fData)
+print(V)
+print(lambda)
+
+# Calculate PC1 to PC4 scores of all samples
+PC = X %*% V
+
+## How many minimum principal components are needed to explain more than
+## 90% of the variance in the data?
+lambda
+explained_var = sum(lambda)
+precentage_explained_var = (lambda / explained_var) * 100
+print(precentage_explained_var)
+cumsum(precentage_explained_var)
+```
+
+```{r}
+## To explain more than 85% variance, we need a minimum
+## of two principal components.
+plot(PC[, 1], PC[, 2])
+```
+
+```{r}
+## Can the PC1 and PC2 scores also separate the low and high crispy samples?
+df = as.data.frame(cbind(PC[, 1], PC[, 2], foodData$Crispy))
+colnames(df) = c('PC1', 'PC2', 'Crispy')
+df['Crispy'] = lapply(df['Crispy'], as.factor)
+head(df)
+p = ggplot(data = df) +
+  geom_point(aes(x = PC1, y = PC2, color = Crispy))
+p
+```
+

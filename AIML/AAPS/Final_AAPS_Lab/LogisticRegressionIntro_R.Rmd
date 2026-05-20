@@ -1,0 +1,211 @@
+---
+title: An R Markdown document converted from "LogisticRegressionIntro_R.ipynb"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Generate (success) probability values from 0 to 1
+p = seq(0, 1, 0.01)
+
+# Calculate (success) odds
+odds = p/(1-p)
+
+# Calculate (success) log-of-odds
+logodds = log(odds) # log(p/(1-p))
+```
+
+```{r}
+# Create a dataframe with probability, odds, and logodds
+data.frame(Probability = p, Odds = odds, Logodds = logodds)
+```
+
+```{r}
+# Plot odds vs. probability
+ggplot(data.frame(p, odds), aes(x = p, y = odds)) +
+  geom_line(color = 'red')  +
+  labs(x = 'p', y = 'odds', title = 'Odds vs. Probability') +
+  theme(axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title =element_text(size = 14, face = "bold"))
+```
+
+```{r}
+# Plot logodds vs. probability
+ggplot(data.frame(p, logodds), aes(x = p, y = logodds)) +
+  geom_line(color = 'red')  +
+  labs(x = 'p', y = 'logodds', title = 'Logodds vs. Probability') +
+  theme(axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title =element_text(size = 14, face = "bold"))
+```
+
+```{r}
+# Plot logodds vs. odds
+ggplot(data.frame(odds, logodds), aes(x = odds, y = logodds)) +
+  geom_line(color = 'red')  +
+  labs(x = 'odds', y = 'logodds', title = 'Logodds vs. Odds') +
+  theme(axis.text = element_text(size = 12),
+  axis.text.x = element_text(size = 14),
+  axis.text.y = element_text(size = 14),
+  axis.title =element_text(size = 14, face = "bold"))
+```
+
+```{r}
+# Load the sample dataset
+file = '/content/logregsampledataset.csv'
+df = read.csv(file, header = TRUE, stringsAsFactors = FALSE)
+head(df, 10)
+```
+
+```{r}
+str(df)
+```
+
+```{r}
+df$female = as.factor(df$female)
+df$hon = as.factor(df$hon)
+```
+
+```{r}
+str(df)
+```
+
+```{r}
+# Fit a logistic logistic regression model for success probability (of
+# getting into a honors program) with no predictors
+model = glm(data = df, hon ~ 1, family = binomial(link = 'logit'))
+summary(model)
+```
+
+```{r}
+# Print coefficients of model
+coef(model)
+```
+
+```{r}
+table(df$hon)
+```
+
+```{r}
+df %>% group_by(hon) %>% summarise(Frequency = n())
+```
+
+```{r}
+# Print frequency table of honors program admissions
+ftable = df %>% group_by(hon) %>% summarise(Frequency = n())
+print(ftable)
+```
+
+```{r}
+# (Success) Probability of getting admitted to an honors program
+ftable$Frequency[2] / sum(ftable$Frequency) # 49/200
+```
+
+```{r}
+log(0.245/(1-0.245))
+```
+
+```{r}
+# (Success) Probability of getting admitted to an honors program
+p = ftable$Frequency[2] / sum(ftable$Frequency)
+print(p)
+
+# (Success) Odds of getting admitted to an honors program
+odds = p/(1-p)
+print(odds)
+
+# (Success) logodds of getting admitted to an honors program
+logodds = log(odds)
+print(logodds)
+
+# Intercept of model is logodds
+print(coef(model)['(Intercept)'])
+
+# Go from logodds to probability using the sigmoid transformaion x -> 1/(1+exp(-x))
+print(1 / (1+exp(-coef(model)['(Intercept)'])))
+```
+
+```{r}
+# Fit a logistic logistic regression model for success probability (of
+# getting into a honors program) with categorical variable female as predictor
+model = glm(data = df, hon ~ female, family = binomial(link = 'logit'))
+summary(model)
+```
+
+```{r}
+print(coef(model))
+```
+
+```{r}
+# Build a frequency table for honors admissions grouped by
+# whether the individual is female or not
+ftable = df %>% group_by(female, hon) %>% summarise(Frequency = n())
+print(ftable)
+```
+
+```{r}
+# (Success) Probability of male getting admitted to an honors program
+p_male = ftable$Frequency[2] / (ftable$Frequency[1] + ftable$Frequency[2])
+print(p_male)
+
+# (Success) Odds of male getting admitted to an honors program
+odds_male = p_male / (1-p_male)
+print(odds_male)
+
+# (Success) logodds of male getting admitted to an honors program
+logodds_male = log(odds_male)
+print(logodds_male)
+
+# # Intercept of model is logodds of male getting into honors program
+print(coef(model)['(Intercept)'])
+```
+
+```{r}
+# (Success) Probability of female getting admitted to an honors program
+p_female = ftable$Frequency[4] / (ftable$Frequency[3] + ftable$Frequency[4])
+print(p_female)
+
+# (Success) Odds of female getting admitted to an honors program
+odds_female = p_female / (1-p_female)
+print(odds_female)
+
+# (Success) logodds of female getting admitted to an honors program
+logodds_female = log(odds_female)
+print(logodds_female)
+
+# Coefficient is ratio of logodds of female and male (reference)
+print(log(odds_female / odds_male))
+print(coef(model)['female1'])
+```
+
+```{r}
+# Fit a logistic logistic regression model for success probability (of
+# getting into a honors program) with continuous variable math as predictor
+model = glm(data = df, hon ~ math, family = binomial(link = 'logit'))
+summary(model)
+```
+
+```{r}
+# Fit a logistic logistic regression model for success probability (of
+# getting into a honors program) with continuous variables math, read
+# and categorical variable female as predictor
+model = glm(data = df, hon ~ math + read + female, family = binomial(link = 'logit'))
+summary(model)
+```
+
+```{r}
+# Fit a logistic logistic regression model for success probability (of
+# getting into a honors program) with continuous variables math, read
+# and categorical variable female as predictor along with an interaction
+# term between the continuous predictor math and categorical predictor female
+model = glm(data = df, hon ~ math + female + read + math:female, family = binomial(link = 'logit'))
+summary(model)
+```
+

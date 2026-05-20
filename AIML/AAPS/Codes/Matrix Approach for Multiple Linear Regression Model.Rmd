@@ -1,0 +1,80 @@
+---
+title: "Linear Regression Models, Segment 2, Topic 1: Matrix Notations for Data: Design Matrix, Dealing with Categorical Covariates, Multiple Linear Regression Models (MLRM) and assumptions, Ordinary Least Squares (OLS) Solution: Intuition, Geometry, & Algebraic Proof, Residual Vector and its Properties"
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load California housing data
+file = 'data/SaratogaHouses.csv'
+hData = read.csv(file, header = TRUE, stringsAsFactors = TRUE)
+str(hData)
+```
+
+```{r}
+# Build a linear regression model for price as a function of continuous predictors livingArea and age
+model = lm(data = hData, price ~ livingArea + age)
+summary(model)
+```
+
+```{r}
+# Show the levels of categorical predictor heating
+levels(hData$heating)
+```
+
+```{r}
+# Show the dummy encoding of categorical predictor heating
+contrasts(hData$heating)
+```
+
+```{r}
+# Build a linear regression model for price as a function of categorical predictor heating
+model = lm(data = hData, price ~ heating)
+summary(model)
+```
+
+```{r}
+# Build a linear regression model for price as a function of continuous predictor livingArea and categorical predictor heating
+model = lm(data = hData, price ~ livingArea + heating)
+summary(model)
+```
+
+
+```{r}
+# Construct OLS solution obtained using theoretical formulation for predicting price as a function of continuous predictor livingArea and categorical predictor heating
+# Response values
+y = hData[['price']] # response values
+# Design matrix
+X = model.matrix(price ~ livingArea + heating, hData %>% select(price, livingArea, heating))
+# Solve for the coefficient estimates
+betahat = solve(t(X) %*% X) %*% t(X) %*% y
+print(betahat)
+```
+
+```{r}
+# Some properties of the residual vector
+# Build model for predicting price as a function of continuous predictor livingArea and categorical predictor heating
+model = lm(data = hData, price ~ livingArea + heating)
+
+# Sum of residuals
+sum(residuals(model))
+
+# Sample mean of the true response value
+mean(hData$price)
+
+# Sample mean of the fitted response values
+mean(predict(model))
+
+# Residuals are positively correlated with the true response values
+cor(hData$price, residuals(model))
+
+# Residuals are uncorrelated with the predicted response values
+cor(predict(model), residuals(model))
+```
+

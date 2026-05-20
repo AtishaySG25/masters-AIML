@@ -1,0 +1,72 @@
+---
+title: "Linear Regression Models, Segment 1, Topic 6: Feature Engineering Transforming Data
+editor_options:
+  chunk_output_type: console
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load the mtcars dataset
+file = 'data/mtcars.csv'
+carData = read.csv(file, header = TRUE, row.names = 1, stringsAsFactors = FALSE)
+str(carData)
+```
+
+```{r}
+# Convert categorical columns to represent factor levels
+categorical_cols = c('cyl', 'vs', 'am', 'gear', 'carb')
+carData[categorical_cols] = lapply(carData[categorical_cols], as.factor)
+str(carData)
+```
+
+```{r}
+# Print the first five rows (or samples) in the data frame
+head(carData, 5)
+```
+
+```{r}
+# Add a new column called hpc containing the centered hp values
+carData$hpc = carData$hp - mean(carData$hp)
+carData$hpc
+```
+
+```{r}
+# Fit a simple linear regression model for mpg as a function of hpc
+model = lm(data = carData, mpg ~ hpc)
+           
+# Print summary of model
+summary(model)
+```
+
+```{r}
+# Add a new column called mpgc containing the centered mpg values
+carData$mpgc = carData$mpg- mean(carData$mpg)
+```
+
+```{r}
+# Fit a simple linear regression model for mpgc as a function of hpc
+model = lm(data = carData, mpgc ~ hpc)
+           
+# Print summary of model
+summary(model)
+```
+
+
+```{r}
+# Add a new column called logmpg containing the log-transformed mpg values
+carData$logmpg = log(carData$mpg)
+```
+
+
+```{r}
+# Fit a simple linear regression model for logmpg as a function of hp
+model = lm(data = carData, logmpg ~ hp)
+           
+# Print summary of model
+summary(model)
+```

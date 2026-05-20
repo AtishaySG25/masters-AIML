@@ -1,0 +1,232 @@
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+```{r}
+file = 'https://openmv.net/file/room-temperature.csv'
+tempData = read.csv(file, header = TRUE)
+## Print structure and head of data frame
+str(tempData)
+head(tempData, 10)
+```
+```{r}
+tempData <- tempData %>% select(-Date)
+```
+
+```{r}
+names(tempData)
+```
+
+
+```{r}
+# Calculate eigenvalues & eigenvectors of sample covariance matrix
+e = eigen(cov(tempData))
+
+# Eigenvectors of the sample covariance matrix
+View =e$vectors
+
+# Eigenvalues of the sample covariance matrix
+lambda = e$values
+
+# Extract data matrix from data frame
+X = as.matrix(tempData)
+
+# Print first sample
+print(X[1, ])
+
+print('------')
+
+# Print the first 3 eigenvectors or principal directions
+print(View[, 3])
+
+print("--------")
+
+# Print the first 3 eigenvalues
+print(lambda[1:3])
+```
+
+Question-2: How much variance is explained by the first and second principal components?
+```{r}
+# Your eigenvalues
+eigenvalues <- c(View[,3])
+
+# Total variance
+total_variance <- sum(eigenvalues)
+
+# Variance explained by PC1 and PC2
+variance_explained_PC1 <- eigenvalues[1] / total_variance
+variance_explained_PC2 <- eigenvalues[2] / total_variance
+
+# Print the variance explained
+print(paste("Variance explained by PC1: ", variance_explained_PC1))
+print(paste("Variance explained by PC2: ", variance_explained_PC2))
+
+```
+**Question-3:** make a line plot of the PC-1 scores.
+```{r}
+# Project the data onto the first principal direction
+PC1_scores <- X %*% View[,1]
+
+# Create a line plot of the PC1 scores
+plot(PC1_scores, type = "l", main = "Line Plot of PC1 Scores", xlab = "Sample Index", ylab = "PC1 Score")
+
+```
+**Question-4:** plot a bar plot of the loadings for the second principal component. Given this bar plot, what are the characteristics of an observation with a large, positive PC-2 score; and a large, negative PC-2 score?
+```{r}
+# Loadings for the second principal component
+loadings_PC2 <- View[,2]
+
+# Create a bar plot of the loadings for PC2
+barplot(loadings_PC2, main = "Bar Plot of Loadings for PC2", xlab = "Variables", ylab = "Loadings")
+
+```
+**Question-5:** make a scatter plot of PC-1 (x-axis) vs. PC-2 (y-axis) scores. Briefly explain how you can use this plot to detect outliers in the temperature measurements?
+```{r}
+# Project the data onto the first and second principal directions
+PC1_scores <- X %*% View[,1]
+PC2_scores <- X %*% View[,2]
+
+# Create a scatter plot of the PC1 scores vs. the PC2 scores
+plot(PC1_scores, PC2_scores, xlab = "PC1 Scores", ylab = "PC2 Scores", main = "Scatter Plot of PC1 vs. PC2 Scores")
+
+```
+MPG Dataset
+```{r}
+## for the data set that we will modify a bit in the next cell
+autompg = read.table(
+  "http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data",
+  quote = "\"",
+  comment.char = "",
+  stringsAsFactors = FALSE)
+```
+
+```{r}
+str(autompg)
+head(autompg, 10)
+```
+
+
+**Question 6:** print the structure of the unedited data set. How many samples and features are there?
+```{r}
+dim(autompg)
+```
+
+**Here we modify data set; just execute this cell and understand what is happening.**
+```{r}
+# Give the dataframe column names
+colnames(autompg) = c("mpg", "cyl", "disp", "hp", "wt", "acc", "year", "origin", "name")
+
+# Remove samples with missing horsepower (hp) values represented as "?"
+autompg = autompg %>% filter(hp != '?')
+
+# Remove samples with name "plymouth reliant"
+autompg = autompg %>% filter(name != 'plymouth reliant')
+
+# Give the dataframe row names in the form based on the engine, year and name
+rownames(autompg) = paste(autompg$cyl, "cylinder", autompg$year, autompg$name)
+
+# Select all features except "name"
+autompg = autompg %>% select(-name)
+
+# Change horsepower from character to numeric
+autompg$hp = as.numeric(autompg$hp)
+
+# Modify origin column to reflect local (1) and international models (0)
+autompg = autompg %>% mutate(origin = ifelse(!(origin %in% c(2, 3)), 'local', 'international'))
+
+# Filter samples with 3 and 5 cylinder cars (which are very rare)
+autompg = autompg %>% filter(!(cyl %in% c(3, 5)))
+
+# Change cyl and origin columns to factor types
+catcols = c('cyl', 'origin')
+autompg[catcols] = lapply(autompg[catcols], factor)
+```
+
+**Question 7: print the first 20 rows of the data frame.**
+```{r}
+head(autompg, 20)
+
+```
+**Question 8: print the structure of the modified data frame. How many samples and features are there? Which features are categorical?**
+```{r}
+dim(autompg)
+
+# Get the class of each column in the data frame
+column_classes <- sapply(autompg, class)
+
+# Print the column names that are factors (categorical)
+print(names(column_classes[column_classes == "factor"]))
+
+
+```
+
+**Question 9: how many levels does the categorical variable *origin* have? What is the reference level?**
+```{r}
+# Get the levels of the 'origin' variable
+origin_levels <- levels(autompg$origin)
+
+# Print the number of levels and the levels themselves
+print(paste("Number of levels: ", length(origin_levels)))
+print(paste("Levels: ", origin_levels))
+
+# Get the reference level
+reference_level <- contrasts(autompg$origin)[,1]
+print(paste("Reference level: ", names(reference_level)[reference_level == 1]))
+```
+**Question 10: Create a scatter plot of mpg (y-axis) vs. number of cylinders (x-axis).**
+```{r}
+p1 = ggplot(data = autompg, aes(x = cyl, y = mpg)) +
+  geom_point()
+p1
+```
+**Question 11: Create a scatter plot of mpg vs. displacement by color coding the points according to the number of cylinders.**
+```{r}
+p2 = ggplot(data = autompg, aes(x = disp, y = mpg, color = factor(cyl))) +
+  geom_point()
+p2
+```
+**Question 12: Create a scatter plot of mpg vs. displacement by color coding the points according to the origin (local or international).**
+```{r} 
+p3 = ggplot(data = autompg, aes(x = disp, y = mpg, color = factor(origin))) + geom_point()
+p3
+```
+**Question 13: fit a linear model for approximating *mpg* as a function of *displacement* and *origin*. Print the model's summary.**
+```{r}
+model1 = lm(data = autompg, mpg ~ disp + origin)
+summary(model1)
+```
+**Question 14: Extract the slope and intercept for estimating the mpg of local and international categories. It would be helpful to start with the regression equation $\hat{y}^{(i)} = \hat{\beta}_0 + \hat{\beta}_1x_1^{(i)} + \hat{\beta}_2x_2^{(i)}$ and then write two separate equations for local
+ and international categories.**
+ 
+```{r}
+# Extract the intercept and slope for the 'international' category
+intercept_international = coef(model)["(Intercept)"]
+slope_international = coef(model)["origininternational"]
+
+# Extract the intercept and slope for the 'local' category
+# For the 'local' category, the intercept is the same as for the 'international' category,
+# and the slope is the sum of the slope for the 'international' category and the coefficient for 'originlocal'
+intercept_local = intercept_international
+slope_local = slope_international + coef(model)["originlocal"]
+```
+
+```{r}
+# Print the intercept and slope for the 'international' category
+print(paste("Intercept for international: ", intercept_international))
+print(paste("Slope for international: ", slope_international))
+
+# Print the intercept and slope for the 'local' category
+print(paste("Intercept for local: ", intercept_local))
+print(paste("Slope for local: ", slope_local))
+
+```
+**Question 15: to the scatter plot you created for mpg. vs displacement color coded using origin, add two separete regression lines for local and domestic cars.**
+```{r}
+p3 %+% geom_line(intercept = intercept_local, slope = slope_local, color = 'red', size = 1, linetype = 1) + p3
+   
+```
+
+
+
+
+

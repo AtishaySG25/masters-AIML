@@ -1,0 +1,169 @@
+---
+title: Principal Component Analysis (PCA) Coding Assignment
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(mice)
+```
+
+```{r}
+## Load ICU dataset
+file = 'D:/AAPS/Codes/Data/ICU_filtered.csv'
+dfICU = read.csv(file, header = TRUE, stringsAsFactors = FALSE)
+str(dfICU)
+```
+
+```{r}
+## Print first 5 samples of data frame
+head(dfICU, n = 5)
+```
+
+```{r}
+#Drop In-hospital_death death column
+dfICU = dfICU %>% select(-c(In_hospital_death, Length_of_stay))
+```
+
+
+```{r}
+## Plot fraction of missing values (NAs) in each column of the data frame
+pMissDF = setNames(stack(sapply(dfICU, function(x){(sum(is.na(x))/length(x))*100}))[2:1], c('Feature','Value'))
+p = ggplot(data = pMissDF, aes(x = Feature, y = Value)) +
+  geom_bar(stat = 'identity', fill = 'steelblue', width = 0.3) +
+  theme(text = element_text(size = 14, face = 'bold'),
+  axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  xlab('') + ylab('Percentage') +
+  ggtitle('Percentage of NAs across all features')  +
+  theme(plot.title = element_text(size = 12, hjust = 0.5),
+        axis.text = element_text(size = 8),
+        axis.text.x = element_text(size = 8),
+        axis.text.y = element_text(size = 10),
+        axis.title = element_text(size = 12, face = "bold"))
+p
+```
+
+```{r}
+## Drop columns with more than 30% missing values
+dfICU = dfICU %>% select(-c(pMissDF[pMissDF['Value'] > 30, 'Feature']))
+```
+
+```{r}
+ncol(dfICU)
+```
+
+
+```{r}
+## Collate 4 different ICU types (CCU, CSRU, SICU, CCU) into one column
+## called 'ICU', remove separate ICU columns and 'recordid' column
+dfICU[dfICU['CCU'] == 1, 'ICU'] = 1
+dfICU[dfICU['CSRU'] == 1, 'ICU'] = 2
+dfICU[dfICU['SICU'] == 1, 'ICU'] = 3
+dfICU[(dfICU['CCU'] == 0 ) & (dfICU['CSRU'] == 0) & (dfICU['SICU'] == 0), 'ICU'] = 4
+dfICU = dfICU %>% select(-c(CCU, CSRU, SICU, recordid))
+```
+
+```{r}
+## Create list of continuous and categorical features
+features = colnames(dfICU)
+categorical_features = c('Gender', 'GCS_first', 'MechVent', 'ICU')
+continuous_features = features[c(!(colnames(dfICU) %in% categorical_features))]
+```
+
+```{r}
+# Impute missing values using the MICE package
+dfICU = complete(mice(dfICU, m = 1, pred = quickpred(dfICU, minpuc = 0.25), seed = 500))
+head(dfICU, n=5)
+```
+
+```{r}
+## Select only continuous features
+dfICU_continuous = dfICU %>% select(continuous_features)
+head(dfICU_continuous)
+```
+
+```{r}
+## Scale the data containing the continuous features and perform PCA
+X = scale(dfICU_continuous) # note that the output of the scale function is a matrix
+
+# Covariance of scaled data matrix
+S = cov(X)
+
+# Calculate eigenvectors and eigenvalues of covariance matrix
+e = eigen(S)
+V = e$vectors
+lambda = e$values
+
+ 
+colnames(dfICU_continuous)
+print(V)
+print(lambda)
+```
+
+```{r}
+## Plot PC1 loadings and explain intuitively what the PC1 score captures
+## about a patient
+PC1 = V[, 1]
+dfPCA = data.frame(V)
+colnames(dfPCA) = paste0('PC', c(1:ncol(V)), 'L')
+ggplot(data = dfPCA) +
+  geom_bar(aes(x = c(1:ncol(dfICU_continuous)), y = PC1L), stat = 'identity', width = 0.3, fill = 'steelblue') +
+   labs(x = 'Feature', y = 'PC1 Loading') +
+   ggtitle("PC1 Loading for All Features") +
+   theme(plot.title = element_text(size = 16, hjust = 0.5),
+   axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 8),
+   axis.text.y = element_text(size = 10),
+   axis.title = element_text(size = 12, face = "bold"))
+```
+
+```{r}
+## Calculate all PC scores of all samples
+PC = X %*% V
+PC
+```
+
+```{r}
+## How much variance is explained by each principal direction
+## or each principal component?
+print(apply(X %*% V, 2, var))
+```
+
+```{r}
+## Percentage of total variance explained by each principal component
+percentage_explained_var = (lambda / sum(lambda)) * 100
+print(percentage_explained_var)
+```
+
+```{r}
+## How many minimum principal components are needed to explain at least
+## 80% of the variance in the data?
+which(cumsum(percentage_explained_var) >= 80)[1]
+
+```
+
+```{r}
+## Find out which combination of PC scores can separate patients who received
+## mechanical ventilation or not?
+df = as.data.frame(cbind(PC[, 1], PC[, 2], dfICU$MechVent, dfICU$Gender))
+colnames(df) = c('PC1', 'PC2', 'MechVent', 'Gender')
+df[c('MechVent', 'Gender')] = lapply(df[c('MechVent', 'Gender')], as.factor)
+head(df)
+p = ggplot(data = df) +
+  geom_point(aes(x = PC1, y = PC2, color =  MechVent))
+p
+```
+
+```{r}
+## Perform PCA using R function prcomp() and interpret the output
+prcomp(X)
+```
+
+```{r}
+## As next step, write a suitable number of PC scores onto a CSV file and do the following: (1) perform K-means clustering of the PC scores dataset and investigate the clusters w.r.t. the feature 'MechVent' (2) add the categorical features to the PC scores dataset, use 'MechVent' as the target variable, build and test a classification model
+
+
+```
+
+
