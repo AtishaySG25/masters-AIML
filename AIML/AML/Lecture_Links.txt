@@ -1,0 +1,28 @@
+KD Trees - https://youtu.be/TLxWtXEbtFE?si=7SojasBLhTTaV8I-
+	   https://youtu.be/DlPrTGbO19E?si=vuCY7IjxzCF_KM2d
+
+https://www.youtube.com/watch?v=Pz6xX6rK5M4&list=PLBv09BD7ez_4_UoYeGrzvqveIR_USBEKD
+AML Lecture 17
+
+https://www.youtube.com/playlist?list=PLBv09BD7ez_6VX12puSF0Ep6NluI9vwoX
+AML Lecture 16
+
+https://www.youtube.com/@vlavrenko/playlists - Literally everything
+
+https://www.analyticsvidhya.com/blog/2021/06/understanding-random-forest/ 
+AML Lecture 18 
+
+Perceptron Learning Algorithm: https://towardsdatascience.com/perceptron-learning-algorithm-d5db0deab975
+https://www.youtube.com/watch?v=VRcixOuG-TU
+
+Support Vector Machines:(From 11:50) https://www.youtube.com/watch?v=xpHQ6UhMlx4&t=698s  (Margin- from 27:55)
+
+Soft Margin SVM: https://towardsdatascience.com/support-vector-machines-soft-margin-formulation-and-kernel-trick-4c9729dc8efe
+
+Overfitting and Underfitting With Machine Learning Algorithms: 
+https://machinelearningmastery.com/overfitting-and-underfitting-with-machine-learning-algorithms/
+
+Under and Overfitting in KNN: https://datascience.stackexchange.com/questions/81866/why-does-the-overfitting-decreases-if-we-choose-k-to-be-large-in-k-nearest-neigh
+
+Curse of Dimensionality: https://youtu.be/FJ6Z_-HCeg4?si=fEg0-waFdU5tvx7l
+
