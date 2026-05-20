@@ -1,0 +1,22 @@
+C:\Users\ATISHAY SG>postgreSQL -u postgres psql
+'postgreSQL' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\ATISHAY SG>cd C:\Program Files\PostgreSQL\16\bin
+
+C:\Program Files\PostgreSQL\16\bin>psql -U postgres -h localhost
+Password for user postgres:
+psql (16.1)
+WARNING: Console code page (437) differs from Windows code page (1252)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# CREATE DATABASE <AIML_2024>
+postgres-# CREATE USER <ATISHAY> WITH ENCRYPTED PASSWORD '<sayonee650>';
+ERROR:  syntax error at or near "<"
+LINE 1: CREATE DATABASE <AIML_2024>
+                        ^
+postgres=# CREATE USER <ATISHAY> WITH ENCRYPTED PASSWORD '<sayonee650>'
+postgres-# GRANT ALL PRIVILAGES ON DATABASE <AIML_2024> TO <ATISHAY>
+postgres-# psql -d <AIML_2024> -U <ATISHAY>
